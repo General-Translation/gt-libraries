@@ -3,10 +3,8 @@ import {
   RenderMethod,
   InlineTranslationOptions,
   DictionaryTranslationOptions,
-  Dictionary,
-  DictionaryObject,
 } from './types';
-
+import { Dictionary } from './dictionary';
 import { TranslateContentCallback, TranslateChildrenCallback } from './runtime';
 
 export type GTContextType = {

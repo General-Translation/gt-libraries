@@ -14,28 +14,21 @@ import renderTranslatedChildren from './provider/rendering/renderTranslatedChild
 import { defaultRenderSettings } from './provider/rendering/defaultRenderSettings';
 import renderSkeleton from './provider/rendering/renderSkeleton';
 import {
-  Dictionary,
   RenderMethod,
   TranslatedChildren,
   TranslatedContent,
   TranslationError,
   TranslationsObject,
-  DictionaryEntry,
   TranslationSuccess,
   TranslationLoading,
   Children,
-  FlattenedDictionary,
   Metadata,
   Child,
   GTProp,
-  Entry,
   GTTranslationError,
   DictionaryTranslationOptions,
   InlineTranslationOptions,
   RuntimeTranslationOptions,
-  LocalesDictionary,
-  DictionaryContent,
-  DictionaryObject,
   CustomLoader,
   RenderVariable,
   VariableProps,
@@ -44,6 +37,15 @@ import {
 import { GTContextType, ClientProviderProps } from './types/providers';
 import { defaultLocaleCookieName } from './utils/cookies';
 import mergeDictionaries from './provider/helpers/mergeDictionaries';
+import {
+  Dictionary,
+  DictionaryContent,
+  DictionaryEntry,
+  DictionaryObject,
+  Entry,
+  FlattenedDictionary,
+  LocalesDictionary,
+} from './types/dictionary';
 
 export {
   addGTIdentifier,

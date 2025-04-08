@@ -13,25 +13,11 @@ export type TaggedChild = React.ReactNode | TaggedElement;
 export type TaggedChildren = TaggedChild[] | TaggedChild;
 export type TaggedElementProps = Record<string, any> & { 'data-_gt': GTProp };
 export type TaggedElement = React.ReactElement<TaggedElementProps>;
-export type TaggedEntry = Content | TaggedChildren;
 
-export type FlattenedContentDictionary = Record<
-  string,
-  { hash: string; source: Content; metadata?: Record<string, any> }
->;
-
-export type Entry = string;
 export type Metadata = {
   context?: string;
   variablesOptions?: Record<string, any>;
   [key: string]: any;
-};
-export type DictionaryEntry = Entry | [Entry] | [Entry, Metadata];
-export type Dictionary = {
-  [key: string]: Dictionary | DictionaryEntry;
-};
-export type FlattenedDictionary = {
-  [key: string]: DictionaryEntry;
 };
 
 export type Variable = {
@@ -76,21 +62,6 @@ export type TranslationsObject = {
 // maps locales to translation objects
 export type LocalesTranslations = {
   [locale: string]: TranslationsObject | null;
-};
-
-// ----- DICTIONARY ----- //
-
-// a user defined dict (e.g. a user provided translation)
-export type DictionaryContent = string;
-
-// maps dict ids to dict content
-export type DictionaryObject = {
-  [id: string]: DictionaryContent;
-};
-
-// maps locales to dict objects
-export type LocalesDictionary = {
-  [locale: string]: DictionaryObject;
 };
 
 export type CustomLoader = (locale: string) => Promise<any>;

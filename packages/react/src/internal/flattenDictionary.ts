@@ -1,4 +1,4 @@
-import { Dictionary, FlattenedDictionary } from '../types/types';
+import { Dictionary, FlattenedDictionary } from '../types/dictionary';
 
 const createDuplicateKeyError = (key: string) =>
   `Duplicate key found in dictionary: "${key}"`;

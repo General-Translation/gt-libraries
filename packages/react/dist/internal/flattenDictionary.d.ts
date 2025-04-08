@@ -1,4 +1,4 @@
-import { Dictionary, FlattenedDictionary } from '../types/types';
+import { Dictionary, FlattenedDictionary } from '../types/dictionary';
 /**
  * Flattens a nested dictionary by concatenating nested keys.
  * Throws an error if two keys result in the same flattened key.

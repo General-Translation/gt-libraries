@@ -1,17 +1,9 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import {
-  getLocaleProperties,
-  isSameLanguage,
-  requiresTranslation,
-} from 'generaltranslation';
+import { isSameLanguage, requiresTranslation } from 'generaltranslation';
 import { GTContext } from './GTContext';
-import {
-  CustomLoader,
-  Dictionary,
-  DictionaryObject,
-  RenderMethod,
-  TranslationsObject,
-} from '../types/types';
+import { CustomLoader, RenderMethod, TranslationsObject } from '../types/types';
+
+import { Dictionary } from '../types/dictionary';
 import {
   defaultCacheUrl,
   defaultRuntimeApiUrl,
@@ -20,10 +12,8 @@ import {
 import {
   APIKeyMissingWarn,
   createUnsupportedLocalesWarning,
-  customLoadDictionaryWarning,
   customLoadTranslationsError,
   devApiKeyProductionError,
-  dictionaryMissingWarning,
   projectIdMissingWarning,
 } from '../errors/createErrors';
 import { getSupportedLocale } from '@generaltranslation/supported-locales';

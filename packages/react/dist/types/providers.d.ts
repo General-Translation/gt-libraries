@@ -1,4 +1,5 @@
-import { TranslationsObject, RenderMethod, InlineTranslationOptions, DictionaryTranslationOptions, Dictionary } from './types';
+import { TranslationsObject, RenderMethod, InlineTranslationOptions, DictionaryTranslationOptions } from './types';
+import { Dictionary } from './dictionary';
 import { TranslateContentCallback, TranslateChildrenCallback } from './runtime';
 export type GTContextType = {
     registerContentForTranslation: TranslateContentCallback;

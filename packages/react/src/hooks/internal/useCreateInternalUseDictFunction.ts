@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { useCallback } from 'react';
 import {
-  Dictionary,
   DictionaryTranslationOptions,
-  DictionaryObject,
   RenderMethod,
   TranslationsObject,
 } from '../../types/types';
@@ -22,6 +20,7 @@ import {
 import { hashJsxChildren } from 'generaltranslation/id';
 import { Content } from 'generaltranslation/internal';
 import { TranslateContentCallback } from '../../types/runtime';
+import { Dictionary } from '../../types/dictionary';
 
 export default function useCreateInternalUseDictFunction(
   dictionary: Dictionary | undefined,
@@ -81,6 +80,8 @@ export default function useCreateInternalUseDictFunction(
       if (!translationRequired) return renderContent(source, [defaultLocale]);
 
       // ----- CHECK TRANSLATIONS ----- //
+
+      // TODO: read translations from dictionary
 
       // Get hash
       let hash = hashJsxChildren({

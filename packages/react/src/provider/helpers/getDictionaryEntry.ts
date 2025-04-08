@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dictionary, DictionaryEntry } from '../../types/types';
+import { Dictionary, DictionaryEntry } from '../../types/dictionary';
 
 export function isValidDictionaryEntry(
   value: unknown

@@ -2,15 +2,10 @@ import * as React from 'react';
 import React__default from 'react';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 
-type Entry = string;
 type Metadata = {
     context?: string;
     variablesOptions?: Record<string, any>;
     [key: string]: any;
-};
-type DictionaryEntry = Entry | [Entry] | [Entry, Metadata];
-type Dictionary = {
-    [key: string]: Dictionary | DictionaryEntry;
 };
 type Variable = {
     key: string;
@@ -64,6 +59,12 @@ type VariableProps = {
 type RenderVariable = ({ variableType, variableValue, variableOptions, locales, }: Omit<VariableProps, 'variableName'> & {
     locales: string[];
 }) => React__default.JSX.Element;
+
+type Entry = string;
+type DictionaryEntry = Entry | [Entry] | [Entry, Metadata];
+type Dictionary = {
+    [key: string]: Dictionary | DictionaryEntry;
+};
 
 type TranslateContentCallback = (params: {
     source: any;
