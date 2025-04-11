@@ -39,83 +39,200 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DictionaryManager = void 0;
+exports.dictionaryManager = exports.DictionaryManager = void 0;
 var generaltranslation_1 = require("generaltranslation");
+var internal_1 = require("gt-react/internal");
 var resolveDictionaryDictionary_1 = __importDefault(require("../loaders/resolveDictionaryDictionary"));
 var createErrors_1 = require("../errors/createErrors");
+var internal_2 = require("generaltranslation/internal");
 /**
  * Manages Dictionary
  */
 var DictionaryManager = /** @class */ (function () {
     /**
-     * Creates an instance of TranslationManager.
+     * Creates an instance of DictionaryManager.
      * @constructor
      */
     function DictionaryManager() {
-        this.dictionaryMap = new Map();
+        this.dictionaries = {};
+        this.defaultLocale = internal_2.libraryDefaultLocale;
     }
-    // flatten object helper function
-    DictionaryManager.prototype._flattenObject = function (obj, parentKey, result) {
-        if (parentKey === void 0) { parentKey = ''; }
-        if (result === void 0) { result = {}; }
-        for (var key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                var newKey = parentKey ? "".concat(parentKey, ".").concat(key) : key;
-                var value = obj[key];
-                if (value !== null &&
-                    typeof value === 'object' &&
-                    !Array.isArray(value)) {
-                    this._flattenObject(value, newKey, result);
-                }
-                else {
-                    result[newKey] = value;
-                }
-            }
-        }
-        return result;
+    // ---------- CONFIGURATION ---------- //
+    /**
+     * Set the config for the DictionaryManager.
+     * @param {Object} config - The config object.
+     * @param {string} config.defaultLocale - The default locale.
+     */
+    DictionaryManager.prototype.setConfig = function (_a) {
+        var defaultLocale = _a.defaultLocale;
+        this.defaultLocale = defaultLocale;
     };
+    // ---------- DICTIONARY MANAGEMENT ---------- //
     /**
      * Retrieves dictionary for a given locale from bundle.
+     *
+     * Will also cache the dictionary in the internal cache.
      * @param {string} locale - The locale code.
-     * @returns {Promise<DictionaryObject | undefined>} The dictionary data or undefined if not found.
+     * @returns {Promise<FlattenedDictionary>} The dictionary data or empty object if not found.
      */
-    DictionaryManager.prototype.getDictionary = function (locale) {
-        return __awaiter(this, void 0, void 0, function () {
-            var reference, result, customLoadDictionary, _a, error_1;
+    DictionaryManager.prototype.getDictionary = function () {
+        return __awaiter(this, arguments, void 0, function (locale, prefixId) {
+            var flattenedDictionary, rawDictionary, subsetDictionary;
+            var _a;
+            if (locale === void 0) { locale = this.defaultLocale; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        reference = process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true'
-                            ? (0, generaltranslation_1.standardizeLocale)(locale)
-                            : locale;
-                        result = this.dictionaryMap.get(reference);
-                        if (result)
-                            return [2 /*return*/, result];
-                        customLoadDictionary = (0, resolveDictionaryDictionary_1.default)();
-                        if (!customLoadDictionary) return [3 /*break*/, 4];
-                        _b.label = 1;
+                        flattenedDictionary = (_a = this.dictionaries) === null || _a === void 0 ? void 0 : _a[locale];
+                        if (flattenedDictionary)
+                            return [2 /*return*/, flattenedDictionary];
+                        if (!(locale === this.defaultLocale)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._loadDefaultDictionary()];
                     case 1:
-                        _b.trys.push([1, 3, , 4]);
-                        _a = this._flattenObject;
-                        return [4 /*yield*/, customLoadDictionary(reference)];
-                    case 2:
-                        result = _a.apply(this, [_b.sent()]);
-                        this.dictionaryMap.set(reference, result);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_1 = _b.sent();
-                        if (process.env.NODE_ENV === 'development') {
-                            console.warn((0, createErrors_1.customLoadDictionaryWarning)(reference), error_1);
+                        rawDictionary = _b.sent();
+                        if (!rawDictionary) {
+                            console.warn(createErrors_1.defaultDictionaryUnavailableWarning);
                         }
-                        return [2 /*return*/, undefined];
-                    case 4: return [2 /*return*/, result];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, this._loadDictionary(locale)];
+                    case 3:
+                        rawDictionary = _b.sent();
+                        if (!rawDictionary) {
+                            console.warn((0, createErrors_1.dictionaryUnavailableWarning)(locale));
+                        }
+                        _b.label = 4;
+                    case 4:
+                        // No result found
+                        if (!rawDictionary) {
+                            this.dictionaries[locale] = {};
+                            return [2 /*return*/, {}];
+                        }
+                        // Flatten result
+                        try {
+                            flattenedDictionary = (0, internal_1.flattenDictionary)(rawDictionary);
+                        }
+                        catch (error) {
+                            console.warn(error);
+                            flattenedDictionary = {};
+                        }
+                        // Cache result
+                        this.dictionaries[locale] = flattenedDictionary;
+                        // Return entire dictionary
+                        if (!prefixId) {
+                            return [2 /*return*/, flattenedDictionary];
+                        }
+                        subsetDictionary = {};
+                        try {
+                            subsetDictionary = this._getDictionarySubset(flattenedDictionary, prefixId);
+                        }
+                        catch (error) {
+                            console.warn(error);
+                        }
+                        return [2 /*return*/, subsetDictionary];
                 }
             });
         });
     };
+    // ---------- DICTIONARY LOADING HELPERS ---------- //
+    /**
+     * Retrieves default dictionary
+     * @returns {Promise<Dictionary | undefined>} The default dictionary data.
+     */
+    DictionaryManager.prototype._loadDefaultDictionary = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var dictionaryFileType, dictionary;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        dictionaryFileType = process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
+                        try {
+                            if (dictionaryFileType === '.json') {
+                                dictionary = require('gt-next/_dictionary');
+                            }
+                            else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
+                                dictionary = require('gt-next/_dictionary').default;
+                            }
+                        }
+                        catch (_b) { }
+                        if (!(!dictionary && this.defaultLocale)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._loadDictionary(this.defaultLocale)];
+                    case 1:
+                        dictionary = _a.sent();
+                        _a.label = 2;
+                    case 2: return [2 /*return*/, dictionary];
+                }
+            });
+        });
+    };
+    /**
+     * Load dictionary for a given locale
+     * @param {string} locale - The locale code.
+     * @returns {Promise<Dictionary | undefined>} The dictionary data or undefined if not found.
+     */
+    DictionaryManager.prototype._loadDictionary = function (locale) {
+        return __awaiter(this, void 0, void 0, function () {
+            var result, customLoadDictionary, _a, languageCode, _b;
+            var _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        customLoadDictionary = (0, resolveDictionaryDictionary_1.default)();
+                        if (!customLoadDictionary)
+                            return [2 /*return*/, undefined];
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, customLoadDictionary(locale)];
+                    case 2:
+                        result = _d.sent();
+                        if (result)
+                            return [2 /*return*/, result];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        _a = _d.sent();
+                        return [3 /*break*/, 4];
+                    case 4:
+                        languageCode = (_c = (0, generaltranslation_1.getLocaleProperties)(locale)) === null || _c === void 0 ? void 0 : _c.languageCode;
+                        if (!languageCode || languageCode === locale)
+                            return [2 /*return*/, result];
+                        _d.label = 5;
+                    case 5:
+                        _d.trys.push([5, 7, , 8]);
+                        return [4 /*yield*/, customLoadDictionary(languageCode)];
+                    case 6:
+                        result = _d.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
+                        _b = _d.sent();
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, result];
+                }
+            });
+        });
+    };
+    // ---------- DICTIONARY MANIPULATION HELPERS ---------- //
+    /**
+     * Get a subset of a dictionary.
+     * Prefix must map to type Dictionary, not DictionaryEntry.
+     * @param {FlattenedDictionary} dictionary - The dictionary to subset.
+     * @param {string} prefixId - The prefix id of a parent dictionary entry.
+     * @returns {FlattenedDictionary} The subset of the original dictionary.
+     */
+    DictionaryManager.prototype._getDictionarySubset = function (dictionary, prefixId) {
+        // Check if this is a dictionary entry
+        if (dictionary[prefixId]) {
+            throw new Error((0, createErrors_1.createDictionarySubsetError)(prefixId));
+        }
+        // Filter by prefix
+        var subset = Object.fromEntries(Object.entries(dictionary).filter(function (_a) {
+            var key = _a[0];
+            return key.startsWith(prefixId);
+        }));
+        return subset;
+    };
     return DictionaryManager;
 }());
 exports.DictionaryManager = DictionaryManager;
-var dictionaryManager = new DictionaryManager();
-exports.default = dictionaryManager;
+exports.dictionaryManager = new DictionaryManager();
+exports.default = exports.dictionaryManager;
 //# sourceMappingURL=DictionaryManager.js.map

@@ -1,7 +1,7 @@
 "use strict";
 // ---- ERRORS ---- //
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.standardizedLocalesWarning = exports.dictionaryNotFoundWarning = exports.runtimeTranslationTimeoutWarning = exports.translationLoadingWarning = exports.APIKeyMissingWarn = exports.noInitGTWarn = exports.projectIdMissingWarn = exports.createMismatchingHashWarning = exports.createUnsupportedLocalesWarning = exports.createInvalidDictionaryEntryWarning = exports.createNoEntryFoundWarning = exports.usingDefaultsWarning = exports.unresolvedLoadTranslationsBuildError = exports.unresolvedLoadDictionaryBuildError = exports.unresolvedCustomLoadTranslationsError = exports.unresolvedCustomLoadDictionaryError = exports.dictionaryDisabledError = exports.createDictionarySubsetError = exports.devApiKeyIncludedInProductionError = exports.createRequiredPrefixError = exports.createDictionaryTranslationError = exports.createStringTranslationError = exports.customLoadDictionaryWarning = exports.customLoadTranslationsError = exports.remoteTranslationsError = void 0;
+exports.createDictionarySubsetWarning = exports.dictionaryUnavailableWarning = exports.defaultDictionaryUnavailableWarning = exports.flattenDictionaryWarning = exports.standardizedLocalesWarning = exports.dictionaryNotFoundWarning = exports.runtimeTranslationTimeoutWarning = exports.translationLoadingWarning = exports.APIKeyMissingWarn = exports.noInitGTWarn = exports.projectIdMissingWarn = exports.createMismatchingHashWarning = exports.createUnsupportedLocalesWarning = exports.createInvalidDictionaryEntryWarning = exports.createNoEntryFoundWarning = exports.usingDefaultsWarning = exports.defaultDictionaryUnavailableError = exports.flattenDictionaryError = exports.unresolvedLoadTranslationsBuildError = exports.unresolvedLoadDictionaryBuildError = exports.unresolvedCustomLoadTranslationsError = exports.unresolvedCustomLoadDictionaryError = exports.dictionaryDisabledError = exports.createDictionarySubsetError = exports.devApiKeyIncludedInProductionError = exports.createRequiredPrefixError = exports.createDictionaryTranslationError = exports.createStringTranslationError = exports.customLoadDictionaryWarning = exports.customLoadTranslationsError = exports.remoteTranslationsError = void 0;
 var generaltranslation_1 = require("generaltranslation");
 exports.remoteTranslationsError = 'gt-next Error: fetching remote translation.';
 var customLoadTranslationsError = function (locale) {
@@ -28,8 +28,8 @@ var createRequiredPrefixError = function (id, requiredPrefix) {
 };
 exports.createRequiredPrefixError = createRequiredPrefixError;
 exports.devApiKeyIncludedInProductionError = "gt-next Error: You are attempting a production using a development API key. Replace this API key with a production API key when you build your app for production.";
-var createDictionarySubsetError = function (id, functionName) {
-    return "gt-next Error: ".concat(functionName, " with id: \"").concat(id, "\". Invalid dictionary entry detected. Make sure you are navigating to the correct subroute of the dictionary with the ID you provide.");
+var createDictionarySubsetError = function (id) {
+    return "gt-next Error: prefixId: \"".concat(id, "\" cannot map to a single entry. A prefixId must correspond to a parent with multiple children.");
 };
 exports.createDictionarySubsetError = createDictionarySubsetError;
 exports.dictionaryDisabledError = "gt-next Error: You are trying to use a dictionary, but you have not added the withGTConfig() plugin to your app. You must add withGTConfig() to use dictionaries. For more information, visit generaltranslation.com/docs";
@@ -43,6 +43,11 @@ var unresolvedLoadTranslationsBuildError = function (path) {
     return "gt-next Error: File defining loadTranslations() function could not be resolved at ".concat(path);
 };
 exports.unresolvedLoadTranslationsBuildError = unresolvedLoadTranslationsBuildError;
+var flattenDictionaryError = function (error, locale) {
+    return "gt-next Error: Flattening dictionary for locale: ".concat(locale, " failed. Reason: ").concat(error.message);
+};
+exports.flattenDictionaryError = flattenDictionaryError;
+exports.defaultDictionaryUnavailableError = "gt-next Error: Default dictionary is unavailable. Make sure you have provided a dictionary.js, dictionary.json, or [defaultLocale].json file.";
 // ---- WARNINGS ---- //
 exports.usingDefaultsWarning = 'gt-next: Unable to access gt-next configuration. Using defaults.';
 var createNoEntryFoundWarning = function (id) {
@@ -82,4 +87,17 @@ var standardizedLocalesWarning = function (locales) {
     return "gt-next: You are using The following locales were standardized: ".concat(locales.join(', '), ".");
 };
 exports.standardizedLocalesWarning = standardizedLocalesWarning;
+var flattenDictionaryWarning = function (error, locale) {
+    return "gt-next: Flattening dictionary for locale: ".concat(locale, " failed. Reason: ").concat(error.message);
+};
+exports.flattenDictionaryWarning = flattenDictionaryWarning;
+exports.defaultDictionaryUnavailableWarning = "gt-next: Default dictionary is unavailable. Make sure you have provided a dictionary.js, dictionary.json, or [defaultLocale].json file.";
+var dictionaryUnavailableWarning = function (locale) {
+    return "gt-next: Dictionary for locale: ".concat(locale, " is not in your list of supported locales.");
+};
+exports.dictionaryUnavailableWarning = dictionaryUnavailableWarning;
+var createDictionarySubsetWarning = function (id) {
+    return "gt-next: prefixId: \"".concat(id, "\" cannot map to a single entry. A prefixId must correspond to a parent with multiple children.");
+};
+exports.createDictionarySubsetWarning = createDictionarySubsetWarning;
 //# sourceMappingURL=createErrors.js.map

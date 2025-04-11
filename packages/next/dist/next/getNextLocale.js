@@ -84,8 +84,15 @@ function getNextLocale() {
                             if (acceptedLocales)
                                 preferredLocales.push.apply(preferredLocales, acceptedLocales);
                         }
-                        // add defaultLocale just in case there are no matches
+                        // Add defaultLocale just in case there are no matches
                         preferredLocales.push(defaultLocale);
+                        // Standardize locale if GT services are enabled
+                        if (process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true') {
+                            preferredLocales = preferredLocales.map(function (locale) {
+                                return (0, generaltranslation_1.standardizeLocale)(locale);
+                            });
+                        }
+                        // Determine locale
                         return (0, generaltranslation_1.determineLocale)(preferredLocales, locales) || defaultLocale;
                     })();
                     return [2 /*return*/, userLocale];

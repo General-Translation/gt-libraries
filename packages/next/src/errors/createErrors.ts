@@ -28,8 +28,8 @@ export const createRequiredPrefixError = (id: string, requiredPrefix: string) =>
 
 export const devApiKeyIncludedInProductionError = `gt-next Error: You are attempting a production using a development API key. Replace this API key with a production API key when you build your app for production.`;
 
-export const createDictionarySubsetError = (id: string, functionName: string) =>
-  `gt-next Error: ${functionName} with id: "${id}". Invalid dictionary entry detected. Make sure you are navigating to the correct subroute of the dictionary with the ID you provide.`;
+export const createDictionarySubsetError = (id: string) =>
+  `gt-next Error: prefixId: "${id}" cannot map to a single entry. A prefixId must correspond to a parent with multiple children.`;
 
 export const dictionaryDisabledError = `gt-next Error: You are trying to use a dictionary, but you have not added the withGTConfig() plugin to your app. You must add withGTConfig() to use dictionaries. For more information, visit generaltranslation.com/docs`;
 
@@ -42,6 +42,11 @@ export const unresolvedLoadDictionaryBuildError = (path: string) =>
 
 export const unresolvedLoadTranslationsBuildError = (path: string) =>
   `gt-next Error: File defining loadTranslations() function could not be resolved at ${path}`;
+
+export const flattenDictionaryError = (error: Error, locale: string) =>
+  `gt-next Error: Flattening dictionary for locale: ${locale} failed. Reason: ${error.message}`;
+
+export const defaultDictionaryUnavailableError = `gt-next Error: Default dictionary is unavailable. Make sure you have provided a dictionary.js, dictionary.json, or [defaultLocale].json file.`;
 
 // ---- WARNINGS ---- //
 
@@ -91,3 +96,14 @@ export const dictionaryNotFoundWarning = `gt-next: Dictionary not found. Make su
 
 export const standardizedLocalesWarning = (locales: string[]) =>
   `gt-next: You are using The following locales were standardized: ${locales.join(', ')}.`;
+
+export const flattenDictionaryWarning = (error: Error, locale: string) =>
+  `gt-next: Flattening dictionary for locale: ${locale} failed. Reason: ${error.message}`;
+
+export const defaultDictionaryUnavailableWarning = `gt-next: Default dictionary is unavailable. Make sure you have provided a dictionary.js, dictionary.json, or [defaultLocale].json file.`;
+
+export const dictionaryUnavailableWarning = (locale: string) =>
+  `gt-next: Dictionary for locale: ${locale} is not in your list of supported locales.`;
+
+export const createDictionarySubsetWarning = (id: string) =>
+  `gt-next: prefixId: "${id}" cannot map to a single entry. A prefixId must correspond to a parent with multiple children.`;

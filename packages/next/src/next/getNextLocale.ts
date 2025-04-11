@@ -1,5 +1,5 @@
 import { cookies, headers } from 'next/headers';
-import { determineLocale } from 'generaltranslation';
+import { determineLocale, standardizeLocale } from 'generaltranslation';
 import getI18NConfig from '../config-dir/getI18NConfig';
 
 // locale header name and cookie name
@@ -24,7 +24,7 @@ export async function getNextLocale(
   const I18NConfig = getI18NConfig();
 
   let userLocale = (() => {
-    const preferredLocales: string[] = [];
+    let preferredLocales: string[] = [];
 
     // Language routed to by middleware
     const headerLocale = headersList.get(I18NConfig.getLocaleHeaderName());
@@ -45,10 +45,17 @@ export async function getNextLocale(
 
       if (acceptedLocales) preferredLocales.push(...acceptedLocales);
     }
-
-    // add defaultLocale just in case there are no matches
+    // Add defaultLocale just in case there are no matches
     preferredLocales.push(defaultLocale);
 
+    // Standardize locale if GT services are enabled
+    if (process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true') {
+      preferredLocales = preferredLocales.map((locale) =>
+        standardizeLocale(locale)
+      );
+    }
+
+    // Determine locale
     return determineLocale(preferredLocales, locales) || defaultLocale;
   })();
 

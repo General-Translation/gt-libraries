@@ -13,7 +13,7 @@ import { defaultLocaleCookieName } from '../utils/cookies';
 // meant to be used inside the server-side <GTProvider>
 export default function ClientProvider({
   children,
-  dictionary,
+  dictionaries,
   initialTranslations,
   locale: _locale,
   _versionId,
@@ -88,6 +88,7 @@ export default function ClientProvider({
 
   // ---------- TRANSLATION METHODS ---------- //
 
+  // runtime translation
   const { registerContentForTranslation, registerJsxForTranslation } =
     useRuntimeTranslation({
       locale: locale,
@@ -101,8 +102,7 @@ export default function ClientProvider({
       runtimeTranslationEnabled,
     });
 
-  // ---------- USE GT() TRANSLATION ---------- //
-
+  // useGT()
   const _internalUseGTFunction = useCreateInternalUseGTFunction(
     translations,
     locale,
@@ -114,10 +114,9 @@ export default function ClientProvider({
     renderSettings
   );
 
-  // ---------- DICTIONARY ENTRY TRANSLATION ---------- //
-
-  const _internalUseDictFunction = useCreateInternalUseDictFunction(
-    dictionary,
+  // useDict()
+  const _internalUseDictFunction = useCreateInternalUseDictFunction({
+    dictionaries,
     translations,
     locale,
     defaultLocale,
@@ -125,8 +124,8 @@ export default function ClientProvider({
     dialectTranslationRequired,
     runtimeTranslationEnabled,
     registerContentForTranslation,
-    renderSettings
-  );
+    renderSettings,
+  });
 
   // ---------- RENDER LOGIC ---------- //
 

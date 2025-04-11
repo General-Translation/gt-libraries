@@ -1,11 +1,10 @@
-import { DictionaryEntry, mergeDictionaries } from 'gt-react/internal';
-import { isValidElement, ReactNode } from 'react';
+import { Dictionaries, FlattenedDictionary } from 'gt-react/internal';
+import { ReactNode } from 'react';
 import getI18NConfig from '../config-dir/getI18NConfig';
 import getLocale from '../request/getLocale';
-import getDictionary, { getDictionaryEntry } from '../dictionary/getDictionary';
-import { Dictionary, TranslationsObject } from 'gt-react/internal';
-import { createDictionarySubsetError } from '../errors/createErrors';
+import { TranslationsObject } from 'gt-react/internal';
 import ClientProvider from './ClientProviderWrapper';
+import { standardizeLocale } from 'generaltranslation';
 
 /**
  * Provides General Translation context to its children, which can then access `useGT`, `useLocale`, and `useDefaultLocale`.
@@ -27,58 +26,48 @@ export default async function GTProvider({
 }) {
   // ---------- SETUP ---------- //
   const I18NConfig = getI18NConfig();
-  const locale = _locale || (await getLocale());
+
+  const locale =
+    (_locale && process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true'
+      ? standardizeLocale(_locale)
+      : _locale) || (await getLocale());
   const defaultLocale = I18NConfig.getDefaultLocale();
   const [translationRequired, dialectTranslationRequired] =
     I18NConfig.requiresTranslation(locale);
 
-  // load dictionary
-  const dictionaryTranslations =
-    (await I18NConfig.getDictionaryTranslations(locale)) || {};
+  // ----- FETCH TRANSLATIONS ----- //
 
-  // ----- FETCH TRANSLATIONS FROM CACHE ----- //
-
+  // Get cached translations
   const cachedTranslationsPromise: Promise<TranslationsObject> =
     translationRequired
       ? I18NConfig.getCachedTranslations(locale)
       : ({} as any);
 
-  // ---------- PROCESS DICTIONARY ---------- //
-  // (While waiting for cache...)
+  // Get default dictionary
+  const dictionariesPromise: Promise<FlattenedDictionary> =
+    I18NConfig.getDictionary(locale, prefixId);
 
-  // Get dictionary subset
-  let dictionary: Dictionary | DictionaryEntry =
-    (prefixId ? getDictionaryEntry(prefixId) : await getDictionary()) || {};
+  // Get translation dictionary
+  const translationDictionaryPromise: Promise<FlattenedDictionary> =
+    I18NConfig.getDictionary(locale, prefixId);
 
-  // Check provisional dictionary
-  if (
-    isValidElement(dictionary) ||
-    Array.isArray(dictionary) ||
-    typeof dictionary !== 'object'
-  ) {
-    // cannot be a DictionaryEntry, must be a Dictionary
-    throw new Error(
-      createDictionarySubsetError(prefixId ?? '', '<GTProvider>')
-    );
-  }
+  // Block until cache check resolves and dictionaries resolve
+  const [translations, defaultDictionary, translationsDictionary] =
+    await Promise.all([
+      cachedTranslationsPromise,
+      dictionariesPromise,
+      translationDictionaryPromise,
+    ]);
 
-  // Insert prefix into dictionary
-  if (prefixId) {
-    const prefixPath = prefixId.split('.').reverse();
-    dictionary = prefixPath.reduce<Dictionary>((acc, prefix) => {
-      return { [prefix]: acc };
-    }, dictionary as Dictionary);
-  }
-
-  // Merge dictionary with dictionary translations
-  dictionary = mergeDictionaries(dictionary, dictionaryTranslations);
-
-  // Block until cache check resolves
-  const translations = await cachedTranslationsPromise;
+  // Merge dictionaries
+  const dictionaries = {
+    [locale]: translationsDictionary,
+    [defaultLocale]: defaultDictionary,
+  };
 
   return (
     <ClientProvider
-      dictionary={dictionary}
+      dictionaries={dictionaries}
       initialTranslations={translations}
       locale={locale}
       locales={I18NConfig.getLocales()}

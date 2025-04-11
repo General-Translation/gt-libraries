@@ -10,11 +10,6 @@ export type DictionaryObject = {
   [id: string]: DictionaryContent;
 };
 
-// maps locales to dict objects
-export type LocalesDictionary = {
-  [locale: string]: DictionaryObject;
-};
-
 // base dictionary entry
 export type Entry = string;
 
@@ -29,4 +24,9 @@ export type Dictionary = {
 // flattened dictionary
 export type FlattenedDictionary = {
   [key: string]: DictionaryEntry;
+};
+
+// maps locales to dict objects
+export type Dictionaries = {
+  [locale: string]: FlattenedDictionary;
 };

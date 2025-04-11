@@ -1,6 +1,6 @@
-// ---- ERRORS ---- //
-
 import { getLocaleProperties } from 'generaltranslation';
+
+// ---- GT-REACT SPECIFIC ERRORS ---- //
 
 export const projectIdMissingError =
   'gt-react Error: General Translation cloud services require a project ID! Find yours at generaltranslation.com/dashboard.';
@@ -49,6 +49,9 @@ export const customLoadTranslationsError = (locale: string = '') =>
 
 export const customLoadDictionaryWarning = (locale: string = '') =>
   `gt-react Error: fetching locally stored dictionary. If you are using a custom loadDictionary(${locale}), make sure it is correctly implemented.`;
+
+export const createDuplicateKeyError = (key: string) =>
+  `gt-react: Error: Duplicate key found in dictionary: "${key}"`;
 
 // ---- WARNINGS ---- //
 

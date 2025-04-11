@@ -22,7 +22,7 @@ import { CustomLoader, RenderMethod, TranslationsObject } from '../types/types';
  *
  * @returns {JSX.Element} The provider component for General Translation context.
  */
-export default function GTProvider({ children, projectId: _projectId, devApiKey: _devApiKey, dictionary: _dictionary, locales, defaultLocale, locale: _locale, cacheUrl, runtimeUrl, renderSettings, loadDictionary, loadTranslations, fallback, ssr, localeCookieName, translations: _translations, _versionId, ...metadata }: {
+export default function GTProvider({ children, projectId: _projectId, devApiKey: _devApiKey, dictionary, locales, defaultLocale, locale: _locale, cacheUrl, runtimeUrl, renderSettings, loadDictionary, loadTranslations, fallback, ssr, localeCookieName, translations: _translations, _versionId, ...metadata }: {
     children?: React.ReactNode;
     projectId?: string;
     devApiKey?: string;

@@ -6,8 +6,9 @@ import {
   TranslatedContent,
   defaultRenderSettings,
   GTTranslationError,
-  DictionaryObject,
   defaultLocaleCookieName,
+  FlattenedDictionary,
+  Dictionaries,
 } from 'gt-react/internal';
 import {
   createMismatchingHashWarning,
@@ -197,8 +198,12 @@ export default class I18NConfiguration {
       ...metadata,
     };
     // Dictionary managers
-    this._translationManager = translationManager;
     this._dictionaryManager = dictionaryManager;
+    this._dictionaryManager.setConfig({
+      defaultLocale: this.defaultLocale,
+    });
+    // Translation manager
+    this._translationManager = translationManager;
     this._translationManager.setConfig({
       cacheUrl,
       projectId,
@@ -358,14 +363,26 @@ export default class I18NConfiguration {
   // User defined translations are called dictionary
 
   /**
-   * Load the user's translations for a given locale
-   * @param locale - The locale set by the user
-   * @returns A promise that resolves to the translations.
+   * Get the user's translations for a given locale
+   * @param locale - The locale set by the user (defaults to the default locale)
+   * @param prefixId - The prefix id (optional)
+   * @returns A promise that resolves to the a flattened dictionary, or empty object if no dictionary is available
    */
-  async getDictionaryTranslations(
-    locale: string
-  ): Promise<DictionaryObject | undefined> {
-    return await this._dictionaryManager?.getDictionary(locale);
+  async getDictionary(
+    locale?: string,
+    prefixId?: string
+  ): Promise<FlattenedDictionary> {
+    return this._dictionaryManager?.getDictionary(locale, prefixId) || {};
+  }
+
+  /**
+   * Get the default dictionary for the user's locale
+   * @returns A promise that resolves to the default dictionary.
+   */
+  async getDefaultDictionary(): Promise<FlattenedDictionary> {
+    return (
+      (await this._dictionaryManager?.getDictionary(this.defaultLocale)) || {}
+    );
   }
 
   // ----- CACHED TRANSLATIONS ----- //

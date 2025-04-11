@@ -12,6 +12,7 @@ export declare const createGenericRuntimeTranslationError: (id: string | undefin
 export declare const runtimeTranslationError = "gt-react Error: Runtime translation failed: ";
 export declare const customLoadTranslationsError: (locale?: string) => string;
 export declare const customLoadDictionaryWarning: (locale?: string) => string;
+export declare const createDuplicateKeyError: (key: string) => string;
 export declare const projectIdMissingWarning = "gt-react: Translation cloud services require a project ID! Find yours at generaltranslation.com/dashboard.";
 export declare const createNoEntryFoundWarning: (id: string) => string;
 export declare const createInvalidDictionaryEntryWarning: (id: string) => string;

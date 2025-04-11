@@ -3,7 +3,11 @@ import { isSameLanguage, requiresTranslation } from 'generaltranslation';
 import { GTContext } from './GTContext';
 import { CustomLoader, RenderMethod, TranslationsObject } from '../types/types';
 
-import { Dictionary } from '../types/dictionary';
+import {
+  Dictionary,
+  FlattenedDictionary,
+  Dictionaries,
+} from '../types/dictionary';
 import {
   defaultCacheUrl,
   defaultRuntimeApiUrl,
@@ -27,7 +31,7 @@ import useCreateInternalUseDictFunction from '../hooks/internal/useCreateInterna
 import { isSSREnabled } from './helpers/isSSREnabled';
 import { defaultLocaleCookieName } from '../utils/cookies';
 import loadDictionaryHelper from './helpers/loadDictionaryHelper';
-import mergeDictionaries from './helpers/mergeDictionaries';
+import flattenDictionary from '../internal/flattenDictionary';
 
 /**
  * Provides General Translation context to its children, which can then access `useGT`, `useLocale`, and `useDefaultLocale`.
@@ -55,7 +59,7 @@ export default function GTProvider({
   children,
   projectId: _projectId = '',
   devApiKey: _devApiKey,
-  dictionary: _dictionary,
+  dictionary,
   locales = [],
   defaultLocale = libraryDefaultLocale,
   locale: _locale,
@@ -134,9 +138,9 @@ export default function GTProvider({
 
   // ---------- SET UP DICTIONARY ---------- //
 
-  const [dictionary, setDictionary] = useState<Dictionary | undefined>(
-    _dictionary
-  );
+  const [dictionaries, setDictionaries] = useState<Dictionaries | undefined>({
+    [defaultLocale]: dictionary,
+  });
 
   // Resolve dictionary when not provided, but using custom dictionary loader
   useEffect(() => {
@@ -147,22 +151,30 @@ export default function GTProvider({
 
     (async () => {
       // Load dictionary for default locale
-      const defaultLocaleDictionary =
-        (await loadDictionaryHelper(defaultLocale, loadDictionary)) || {};
+      let defaultLocaleDictionary: FlattenedDictionary | undefined;
+      if (defaultLocale && !dictionaries?.[defaultLocale]) {
+        const defaultRawLocaleDictionary =
+          (await loadDictionaryHelper(defaultLocale, loadDictionary)) || {};
+        defaultLocaleDictionary = flattenDictionary(defaultRawLocaleDictionary);
+      }
 
       // Load dictionary for locale
-      const localeDictionary =
-        (await loadDictionaryHelper(locale, loadDictionary)) || {};
-
-      // Merge dictionaries
-      const mergedDictionary = mergeDictionaries(
-        defaultLocaleDictionary,
-        localeDictionary
-      );
+      let localeDictionary: FlattenedDictionary | undefined;
+      if (locale && !dictionaries?.[locale]) {
+        const localeRawLocaleDictionary =
+          (await loadDictionaryHelper(locale, loadDictionary)) || {};
+        localeDictionary = flattenDictionary(localeRawLocaleDictionary);
+      }
 
       // Update dictionary
       if (storeResults) {
-        setDictionary(mergedDictionary || {});
+        setDictionaries((prev) => ({
+          ...prev,
+          ...(defaultLocaleDictionary && {
+            [defaultLocale]: defaultLocaleDictionary,
+          }),
+          ...(localeDictionary && { [locale]: localeDictionary }),
+        }));
       }
     })();
 
@@ -170,7 +182,7 @@ export default function GTProvider({
     return () => {
       storeResults = false;
     };
-  }, [loadDictionary, locale, defaultLocale]);
+  }, [dictionaries, loadDictionary, locale, defaultLocale]);
 
   // ---------- MEMOIZED CHECKS ---------- //
 
@@ -276,21 +288,6 @@ export default function GTProvider({
     [locale, loadTranslationsType]
   );
 
-  // Setup runtime translation
-  const { registerContentForTranslation, registerJsxForTranslation } =
-    useRuntimeTranslation({
-      locale,
-      versionId: _versionId,
-      projectId,
-      runtimeTranslationEnabled,
-      defaultLocale,
-      devApiKey,
-      runtimeUrl,
-      renderSettings,
-      setTranslations,
-      ...metadata,
-    });
-
   // ---------- ATTEMPT TO LOAD TRANSLATIONS ---------- //
 
   useEffect(() => {
@@ -372,8 +369,24 @@ export default function GTProvider({
     _versionId,
   ]);
 
-  // ---------- USE GT ---------- //
+  // ---------- TRANSLATION METHODS ---------- //
 
+  // runtime translation
+  const { registerContentForTranslation, registerJsxForTranslation } =
+    useRuntimeTranslation({
+      locale,
+      versionId: _versionId,
+      projectId,
+      runtimeTranslationEnabled,
+      defaultLocale,
+      devApiKey,
+      runtimeUrl,
+      renderSettings,
+      setTranslations,
+      ...metadata,
+    });
+
+  // useGT()
   const _internalUseGTFunction = useCreateInternalUseGTFunction(
     translations,
     locale,
@@ -385,10 +398,9 @@ export default function GTProvider({
     renderSettings
   );
 
-  // ---------- USE DICT ---------- //
-
-  const _internalUseDictFunction = useCreateInternalUseDictFunction(
-    dictionary,
+  // useDict()
+  const _internalUseDictFunction = useCreateInternalUseDictFunction({
+    dictionaries,
     translations,
     locale,
     defaultLocale,
@@ -396,8 +408,8 @@ export default function GTProvider({
     dialectTranslationRequired,
     runtimeTranslationEnabled,
     registerContentForTranslation,
-    renderSettings
-  );
+    renderSettings,
+  });
 
   // ----- RETURN ----- //
 

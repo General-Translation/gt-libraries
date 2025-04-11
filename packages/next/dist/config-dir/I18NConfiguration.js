@@ -126,8 +126,12 @@ var I18NConfiguration = /** @class */ (function () {
             timeout: this.renderSettings.timeout - batchInterval,
         })), { projectId: this.projectId, publish: true, fast: true }), metadata);
         // Dictionary managers
-        this._translationManager = TranslationManager_1.default;
         this._dictionaryManager = DictionaryManager_1.default;
+        this._dictionaryManager.setConfig({
+            defaultLocale: this.defaultLocale,
+        });
+        // Translation manager
+        this._translationManager = TranslationManager_1.default;
         this._translationManager.setConfig({
             cacheUrl: cacheUrl,
             projectId: projectId,
@@ -250,17 +254,30 @@ var I18NConfiguration = /** @class */ (function () {
     // ----- DICTIONARY ----- //
     // User defined translations are called dictionary
     /**
-     * Load the user's translations for a given locale
-     * @param locale - The locale set by the user
-     * @returns A promise that resolves to the translations.
+     * Get the user's translations for a given locale
+     * @param locale - The locale set by the user (defaults to the default locale)
+     * @param prefixId - The prefix id (optional)
+     * @returns A promise that resolves to the a flattened dictionary, or empty object if no dictionary is available
      */
-    I18NConfiguration.prototype.getDictionaryTranslations = function (locale) {
+    I18NConfiguration.prototype.getDictionary = function (locale, prefixId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                return [2 /*return*/, ((_a = this._dictionaryManager) === null || _a === void 0 ? void 0 : _a.getDictionary(locale, prefixId)) || {}];
+            });
+        });
+    };
+    /**
+     * Get the default dictionary for the user's locale
+     * @returns A promise that resolves to the default dictionary.
+     */
+    I18NConfiguration.prototype.getDefaultDictionary = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, ((_a = this._dictionaryManager) === null || _a === void 0 ? void 0 : _a.getDictionary(locale))];
-                    case 1: return [2 /*return*/, _b.sent()];
+                    case 0: return [4 /*yield*/, ((_a = this._dictionaryManager) === null || _a === void 0 ? void 0 : _a.getDictionary(this.defaultLocale))];
+                    case 1: return [2 /*return*/, ((_b.sent()) || {})];
                 }
             });
         });

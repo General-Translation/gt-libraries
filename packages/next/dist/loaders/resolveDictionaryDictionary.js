@@ -47,7 +47,7 @@ function resolveDictionaryLoader() {
     // Check: local dictionary loader is enabled
     if (process.env._GENERALTRANSLATION_LOCAL_DICTIONARY_ENABLED !== 'true')
         return;
-    // get load dictionary file
+    // Get load dictionary file
     var customLoadDictionaryConfig;
     try {
         customLoadDictionaryConfig = require('gt-next/_load-dictionary');

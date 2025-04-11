@@ -51,7 +51,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TranslationManager = void 0;
-var generaltranslation_1 = require("generaltranslation");
 var defaultWithGTConfigProps_1 = __importDefault(require("./props/defaultWithGTConfigProps"));
 var internal_1 = require("generaltranslation/internal");
 var loadTranslation_1 = __importDefault(require("./loadTranslation"));
@@ -78,14 +77,6 @@ var TranslationManager = /** @class */ (function () {
         this.gtServicesEnabled =
             process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true';
     }
-    /**
-     * Standardizes a locale if GT services are enabled.
-     * @param {string} locale - The locale to standardize.
-     * @returns {string} The standardized locale.
-     */
-    TranslationManager.prototype._standardizeLocale = function (locale) {
-        return this.gtServicesEnabled ? (0, generaltranslation_1.standardizeLocale)(locale) : locale;
-    };
     /**
      * Sets the configuration for the TranslationManager.
      * @param {Partial<TranslationManagerConfig>} newConfig - The new configuration to apply.
@@ -121,34 +112,33 @@ var TranslationManager = /** @class */ (function () {
      */
     TranslationManager.prototype.getCachedTranslations = function (locale) {
         return __awaiter(this, void 0, void 0, function () {
-            var reference, hasExpired, fetchPromise, retrievedTranslations;
+            var hasExpired, fetchPromise, retrievedTranslations;
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        reference = this._standardizeLocale(locale);
                         hasExpired = this.config.loadTranslationsType === 'remote' &&
-                            this.translationsMap.has(reference) &&
-                            Date.now() - ((_a = this.translationTimestamps.get(reference)) !== null && _a !== void 0 ? _a : 0) >
+                            this.translationsMap.has(locale) &&
+                            Date.now() - ((_a = this.translationTimestamps.get(locale)) !== null && _a !== void 0 ? _a : 0) >
                                 this.config.cacheExpiryTime;
                         // Return cached translations if available
-                        if (this.translationsMap.has(reference) && !hasExpired) {
-                            return [2 /*return*/, this.translationsMap.get(reference)];
+                        if (this.translationsMap.has(locale) && !hasExpired) {
+                            return [2 /*return*/, this.translationsMap.get(locale)];
                         }
-                        if (!this.fetchPromises.has(reference)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.fetchPromises.get(reference)];
+                        if (!this.fetchPromises.has(locale)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.fetchPromises.get(locale)];
                     case 1: return [2 /*return*/, _b.sent()];
                     case 2:
-                        fetchPromise = this._fetchTranslations(reference);
-                        this.fetchPromises.set(reference, fetchPromise);
+                        fetchPromise = this._fetchTranslations(locale);
+                        this.fetchPromises.set(locale, fetchPromise);
                         return [4 /*yield*/, fetchPromise];
                     case 3:
                         retrievedTranslations = _b.sent();
-                        this.fetchPromises.delete(reference);
+                        this.fetchPromises.delete(locale);
                         // Cache the retrieved translations
                         if (retrievedTranslations) {
-                            this.translationsMap.set(reference, retrievedTranslations);
-                            this.translationTimestamps.set(reference, Date.now());
+                            this.translationsMap.set(locale, retrievedTranslations);
+                            this.translationTimestamps.set(locale, Date.now());
                         }
                         return [2 /*return*/, retrievedTranslations];
                 }
@@ -161,8 +151,7 @@ var TranslationManager = /** @class */ (function () {
      * @returns {TranslationsObject | undefined} The translations data or undefined if not found.
      */
     TranslationManager.prototype.getRecentTranslations = function (locale) {
-        var reference = this._standardizeLocale(locale);
-        return this.translationsMap.get(reference);
+        return this.translationsMap.get(locale);
     };
     /**
      * Sets a new translation entry.
@@ -175,9 +164,8 @@ var TranslationManager = /** @class */ (function () {
         var _a;
         if (!(locale && hash && translation))
             return false;
-        var reference = this._standardizeLocale(locale);
-        var currentTranslations = this.translationsMap.get(reference) || {};
-        this.translationsMap.set(reference, __assign(__assign({}, currentTranslations), (_a = {}, _a[hash] = translation, _a)));
+        var currentTranslations = this.translationsMap.get(locale) || {};
+        this.translationsMap.set(locale, __assign(__assign({}, currentTranslations), (_a = {}, _a[hash] = translation, _a)));
         return true;
     };
     /**
@@ -185,8 +173,7 @@ var TranslationManager = /** @class */ (function () {
      * @param {string} locale - The locale code.
      */
     TranslationManager.prototype.setTranslationRequested = function (locale) {
-        var reference = this._standardizeLocale(locale);
-        this.requestedTranslations.set(reference, true);
+        this.requestedTranslations.set(locale, true);
     };
     /**
      * Checks if translations have been requested for a given locale.
@@ -194,8 +181,7 @@ var TranslationManager = /** @class */ (function () {
      * @returns {boolean} True if requested, false otherwise.
      */
     TranslationManager.prototype.getTranslationRequested = function (locale) {
-        var reference = (0, generaltranslation_1.standardizeLocale)(locale);
-        return this.requestedTranslations.get(reference) ? true : false;
+        return this.requestedTranslations.get(locale) ? true : false;
     };
     return TranslationManager;
 }());

@@ -1,4 +1,4 @@
-import { RenderMethod, TranslatedChildren, TranslatedContent, DictionaryObject } from 'gt-react/internal';
+import { RenderMethod, TranslatedChildren, TranslatedContent, FlattenedDictionary } from 'gt-react/internal';
 import { Content, JsxChildren } from 'generaltranslation/internal';
 import { TranslationsObject } from 'gt-react/internal';
 import { HeadersAndCookies } from './props/withGTConfigProps';
@@ -121,11 +121,17 @@ export default class I18NConfiguration {
      */
     requiresTranslation(locale: string): [boolean, boolean];
     /**
-     * Load the user's translations for a given locale
-     * @param locale - The locale set by the user
-     * @returns A promise that resolves to the translations.
+     * Get the user's translations for a given locale
+     * @param locale - The locale set by the user (defaults to the default locale)
+     * @param prefixId - The prefix id (optional)
+     * @returns A promise that resolves to the a flattened dictionary, or empty object if no dictionary is available
      */
-    getDictionaryTranslations(locale: string): Promise<DictionaryObject | undefined>;
+    getDictionary(locale?: string, prefixId?: string): Promise<FlattenedDictionary>;
+    /**
+     * Get the default dictionary for the user's locale
+     * @returns A promise that resolves to the default dictionary.
+     */
+    getDefaultDictionary(): Promise<FlattenedDictionary>;
     /**
      * Get the translation dictionaries for this user's locale, if they exist
      * Globally shared cache or saved locally

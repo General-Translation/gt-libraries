@@ -36,15 +36,14 @@ import {
 
 import { GTContextType, ClientProviderProps } from './types/providers';
 import { defaultLocaleCookieName } from './utils/cookies';
-import mergeDictionaries from './provider/helpers/mergeDictionaries';
 import {
+  Dictionaries,
   Dictionary,
   DictionaryContent,
   DictionaryEntry,
   DictionaryObject,
   Entry,
   FlattenedDictionary,
-  LocalesDictionary,
 } from './types/dictionary';
 
 export {
@@ -57,7 +56,6 @@ export {
   isValidDictionaryEntry,
   getVariableProps,
   DictionaryEntry,
-  FlattenedDictionary,
   GTTranslationError,
   Metadata,
   getPluralBranch,
@@ -85,10 +83,10 @@ export {
   RuntimeTranslationOptions,
   DictionaryContent,
   DictionaryObject,
-  LocalesDictionary,
   CustomLoader,
   RenderVariable,
   VariableProps,
   defaultLocaleCookieName,
-  mergeDictionaries,
+  Dictionaries,
+  FlattenedDictionary,
 };

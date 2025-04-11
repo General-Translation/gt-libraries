@@ -5,9 +5,7 @@ import {
   RenderMethod,
   TranslationsObject,
 } from '../../types/types';
-import getDictionaryEntry, {
-  isValidDictionaryEntry,
-} from '../../provider/helpers/getDictionaryEntry';
+import { isValidDictionaryEntry } from '../../provider/helpers/getDictionaryEntry';
 import getEntryAndMetadata from '../../provider/helpers/getEntryAndMetadata';
 import {
   createInvalidDictionaryEntryWarning,
@@ -20,28 +18,38 @@ import {
 import { hashJsxChildren } from 'generaltranslation/id';
 import { Content } from 'generaltranslation/internal';
 import { TranslateContentCallback } from '../../types/runtime';
-import { Dictionary } from '../../types/dictionary';
+import { Dictionaries } from '../../types/dictionary';
 
-export default function useCreateInternalUseDictFunction(
-  dictionary: Dictionary | undefined,
-  translations: TranslationsObject | null,
-  locale: string,
-  defaultLocale: string,
-  translationRequired: boolean,
-  dialectTranslationRequired: boolean,
-  runtimeTranslationEnabled: boolean,
-  registerContentForTranslation: TranslateContentCallback,
-  renderSettings: { method: RenderMethod }
-) {
+export default function useCreateInternalUseDictFunction({
+  dictionaries,
+  translations,
+  locale,
+  defaultLocale,
+  translationRequired,
+  dialectTranslationRequired,
+  runtimeTranslationEnabled,
+  registerContentForTranslation,
+  renderSettings,
+}: {
+  dictionaries: Dictionaries | undefined;
+  translations: TranslationsObject | null;
+  locale: string;
+  defaultLocale: string;
+  translationRequired: boolean;
+  dialectTranslationRequired: boolean;
+  runtimeTranslationEnabled: boolean;
+  registerContentForTranslation: TranslateContentCallback;
+  renderSettings: { method: RenderMethod };
+}) {
   return useCallback(
     (id: string, options: DictionaryTranslationOptions = {}): string => {
       // Check: dictionary exists
-      if (!dictionary) {
+      if (!dictionaries) {
         return '';
       }
 
       // Get entry
-      const value = getDictionaryEntry(dictionary, id);
+      const value = dictionaries?.[defaultLocale]?.[id];
 
       // Check: no entry found
       if (!value) {
@@ -79,9 +87,21 @@ export default function useCreateInternalUseDictFunction(
       // Check: translation not required
       if (!translationRequired) return renderContent(source, [defaultLocale]);
 
-      // ----- CHECK TRANSLATIONS ----- //
+      // ----- CHECK DICTIONARY ----- //
 
-      // TODO: read translations from dictionary
+      // Get dictionary translation
+      const dictionaryTranslation = dictionaries?.[locale]?.[id];
+
+      // Check: valid entry
+      if (isValidDictionaryEntry(dictionaryTranslation)) {
+        // Get entry and metadata
+        const { entry } = getEntryAndMetadata(dictionaryTranslation);
+
+        // Render translation
+        return renderContent(entry, [locale, defaultLocale]);
+      }
+
+      // ----- CHECK TRANSLATIONS ----- //
 
       // Get hash
       let hash = hashJsxChildren({
@@ -102,6 +122,7 @@ export default function useCreateInternalUseDictFunction(
         ]);
       }
 
+      // Check translation errored
       if (translationEntry?.state === 'error') {
         return renderContent(source, [defaultLocale]);
       }
@@ -136,7 +157,7 @@ export default function useCreateInternalUseDictFunction(
         : '';
     },
     [
-      dictionary,
+      dictionaries,
       translations,
       locale,
       defaultLocale,

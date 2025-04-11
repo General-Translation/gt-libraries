@@ -330,10 +330,10 @@ export function formatNum(
     locales?: string | string[];
   } & Intl.NumberFormatOptions
 ): string {
-  return _formatNum({ 
-    value: number, 
-    locales: options?.locales, 
-    options
+  return _formatNum({
+    value: number,
+    locales: options?.locales,
+    options,
   });
 }
 
@@ -352,9 +352,9 @@ export function formatDateTime(
   } & Intl.DateTimeFormatOptions
 ): string {
   return _formatDateTime({
-    value: date, 
-    locales: options?.locales, 
-    options
+    value: date,
+    locales: options?.locales,
+    options,
   });
 }
 
@@ -375,10 +375,10 @@ export function formatCurrency(
   } & Intl.NumberFormatOptions
 ): string {
   return _formatCurrency({
-    value, 
+    value,
     currency,
-    locales: options?.locales, 
-    options
+    locales: options?.locales,
+    options,
   });
 }
 
@@ -399,7 +399,7 @@ export function formatList(
   return _formatList({
     value: array,
     locales: options?.locales,
-    options: options
+    options: options,
   });
 }
 
@@ -420,7 +420,10 @@ export function formatRelativeTime(
   } & Intl.RelativeTimeFormatOptions
 ): string {
   return _formatRelativeTime({
-    value, unit, locales: options?.locales, options
+    value,
+    unit,
+    locales: options?.locales,
+    options,
   });
 }
 

@@ -52,7 +52,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = getDict;
 var internal_1 = require("gt-react/internal");
-var getDictionary_1 = __importDefault(require("../../dictionary/getDictionary"));
 var createErrors_1 = require("../../errors/createErrors");
 var getI18NConfig_1 = __importDefault(require("../../config-dir/getI18NConfig"));
 var getLocale_1 = __importDefault(require("../../request/getLocale"));
@@ -73,48 +72,38 @@ var id_1 = require("generaltranslation/id");
  */
 function getDict(id) {
     return __awaiter(this, void 0, void 0, function () {
-        var getId, dictionary, I18NConfig, locale, defaultLocale, translationRequired, dictionaryTranslations, _a, translations, _b, renderSettings, d;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var getId, locale, I18NConfig, defaultLocale, translationRequired, renderSettings, cachedTranslationsPromise, dictionariesPromise, translationDictionaryPromise, _a, translations, defaultDictionary, translationsDictionary, d;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     getId = function (suffix) {
                         return id ? "".concat(id, ".").concat(suffix) : suffix;
                     };
-                    return [4 /*yield*/, (0, getDictionary_1.default)()];
-                case 1:
-                    dictionary = (_c.sent()) || {};
-                    I18NConfig = (0, getI18NConfig_1.default)();
                     return [4 /*yield*/, (0, getLocale_1.default)()];
-                case 2:
-                    locale = _c.sent();
+                case 1:
+                    locale = _b.sent();
+                    I18NConfig = (0, getI18NConfig_1.default)();
                     defaultLocale = I18NConfig.getDefaultLocale();
                     translationRequired = I18NConfig.requiresTranslation(locale)[0];
-                    if (!translationRequired) return [3 /*break*/, 4];
-                    return [4 /*yield*/, I18NConfig.getDictionaryTranslations(locale)];
-                case 3:
-                    _a = _c.sent();
-                    return [3 /*break*/, 5];
-                case 4:
-                    _a = undefined;
-                    _c.label = 5;
-                case 5:
-                    dictionaryTranslations = _a;
-                    if (!translationRequired) return [3 /*break*/, 7];
-                    return [4 /*yield*/, I18NConfig.getCachedTranslations(locale)];
-                case 6:
-                    _b = _c.sent();
-                    return [3 /*break*/, 8];
-                case 7:
-                    _b = undefined;
-                    _c.label = 8;
-                case 8:
-                    translations = _b;
                     renderSettings = I18NConfig.getRenderSettings();
+                    cachedTranslationsPromise = translationRequired
+                        ? I18NConfig.getCachedTranslations(locale)
+                        : {};
+                    dictionariesPromise = I18NConfig.getDictionary(locale, id);
+                    translationDictionaryPromise = I18NConfig.getDictionary(locale, id);
+                    return [4 /*yield*/, Promise.all([
+                            cachedTranslationsPromise,
+                            dictionariesPromise,
+                            translationDictionaryPromise,
+                        ])];
+                case 2:
+                    _a = _b.sent(), translations = _a[0], defaultDictionary = _a[1], translationsDictionary = _a[2];
                     d = function (id, options) {
                         if (options === void 0) { options = {}; }
                         // Get entry
                         id = getId(id);
-                        var value = (0, internal_1.getDictionaryEntry)(dictionary, id);
+                        var value = (0, internal_1.getDictionaryEntry)(defaultDictionary, id);
+                        console.log('[getDict] defaultDictionary', defaultDictionary);
                         // Check: no entry found
                         if (!value) {
                             console.warn((0, createErrors_1.createNoEntryFoundWarning)(id));
@@ -139,25 +128,35 @@ function getDict(id) {
                         // Check: translation required
                         if (!translationRequired)
                             return renderContent(source, [defaultLocale]);
-                        // ---------- DICTIONARY TRANSLATIONS ---------- //
+                        // ----- CHECK DICTIONARY ----- //
                         // Get dictionaryTranslation
-                        var dictionaryTranslation = dictionaryTranslations === null || dictionaryTranslations === void 0 ? void 0 : dictionaryTranslations[id];
-                        // Render dictionaryTranslation
-                        if (dictionaryTranslation) {
-                            return (0, generaltranslation_1.renderContentToString)((0, generaltranslation_1.splitStringToContent)(dictionaryTranslation), [locale, defaultLocale], options.variables, options.variablesOptions);
+                        var dictionaryTranslation = translationsDictionary === null || translationsDictionary === void 0 ? void 0 : translationsDictionary[id];
+                        // Check: valid entry
+                        if ((0, internal_1.isValidDictionaryEntry)(dictionaryTranslation)) {
+                            // Get entry and metadata
+                            var entry_1 = (0, internal_1.getEntryAndMetadata)(dictionaryTranslation).entry;
+                            // Render translation
+                            return renderContent(entry_1, [locale, defaultLocale]);
                         }
-                        // ---------- TRANSLATION ---------- //
+                        console.log('[getDict] dictionaryTranslation not found', translationsDictionary);
+                        // ----- CHECK TRANSLATIONS ----- //
+                        // Get hash
                         var hash = (0, id_1.hashJsxChildren)(__assign(__assign({ source: source }, ((metadata === null || metadata === void 0 ? void 0 : metadata.context) && { context: metadata === null || metadata === void 0 ? void 0 : metadata.context })), { id: id, dataFormat: 'JSX' }));
+                        // Check id first
                         var translationEntry = translations === null || translations === void 0 ? void 0 : translations[hash];
-                        // ----- RENDER TRANSLATION ----- //
-                        // If a translation already exists
+                        // Check translation successful
                         if ((translationEntry === null || translationEntry === void 0 ? void 0 : translationEntry.state) === 'success')
-                            return renderContent(translationEntry.target, [locale, defaultLocale]);
-                        // If a translation errored
-                        if ((translationEntry === null || translationEntry === void 0 ? void 0 : translationEntry.state) === 'error')
+                            return renderContent(translationEntry.target, [
+                                locale,
+                                defaultLocale,
+                            ]);
+                        // Check translation errored
+                        if ((translationEntry === null || translationEntry === void 0 ? void 0 : translationEntry.state) === 'error') {
                             return renderContent(source, [defaultLocale]);
-                        // ----- CREATE TRANSLATION ----- //
-                        // Since this is buildtime string translation, it's dev only
+                        }
+                        console.log('[getDict] translationEntry not found', translations);
+                        // ----- TRANSLATE ON DEMAND ----- //
+                        // develoment only
                         if (!I18NConfig.isDevelopmentApiEnabled()) {
                             console.warn((0, createErrors_1.createDictionaryTranslationError)(id));
                             return renderContent(source, [defaultLocale]);
@@ -170,6 +169,7 @@ function getDict(id) {
                         }).catch(function () { }); // Error logged in I18NConfig
                         // Loading translation warning
                         console.warn(createErrors_1.translationLoadingWarning);
+                        console.log('[getDict] loading');
                         // Loading behavior
                         if (renderSettings.method === 'replace') {
                             return renderContent(source, [defaultLocale]);

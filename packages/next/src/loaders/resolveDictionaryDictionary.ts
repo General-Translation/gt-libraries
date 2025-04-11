@@ -11,7 +11,7 @@ export default function resolveDictionaryLoader(): CustomLoader | undefined {
   if (process.env._GENERALTRANSLATION_LOCAL_DICTIONARY_ENABLED !== 'true')
     return;
 
-  // get load dictionary file
+  // Get load dictionary file
   let customLoadDictionaryConfig;
   try {
     customLoadDictionaryConfig = require('gt-next/_load-dictionary');

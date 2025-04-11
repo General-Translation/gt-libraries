@@ -4,7 +4,7 @@ import {
   InlineTranslationOptions,
   DictionaryTranslationOptions,
 } from './types';
-import { Dictionary } from './dictionary';
+import { Dictionaries } from './dictionary';
 import { TranslateContentCallback, TranslateChildrenCallback } from './runtime';
 
 export type GTContextType = {
@@ -32,7 +32,7 @@ export type GTContextType = {
 
 export type ClientProviderProps = {
   children: any;
-  dictionary: Dictionary;
+  dictionaries: Dictionaries;
   initialTranslations: TranslationsObject;
   locale: string;
   locales: string[];

@@ -1,11 +1,12 @@
 import {
   DictionaryTranslationOptions,
+  FlattenedDictionary,
   getDictionaryEntry,
   getEntryAndMetadata,
   isValidDictionaryEntry,
+  TranslationsObject,
 } from 'gt-react/internal';
 
-import getDictionary from '../../dictionary/getDictionary';
 import {
   createDictionaryTranslationError,
   createInvalidDictionaryEntryWarning,
@@ -19,6 +20,7 @@ import {
   splitStringToContent,
 } from 'generaltranslation';
 import { hashJsxChildren } from 'generaltranslation/id';
+import { Content } from 'generaltranslation/internal';
 
 /**
  * Returns the dictionary access function `d()`, which is used to translate an item from the dictionary.
@@ -42,21 +44,35 @@ export default async function getDict(
     return id ? `${id}.${suffix}` : suffix;
   };
 
-  const dictionary = (await getDictionary()) || {};
-
-  const I18NConfig = getI18NConfig();
   const locale = await getLocale();
+  const I18NConfig = getI18NConfig();
   const defaultLocale = I18NConfig.getDefaultLocale();
   const [translationRequired] = I18NConfig.requiresTranslation(locale);
-
-  const dictionaryTranslations = translationRequired
-    ? await I18NConfig.getDictionaryTranslations(locale)
-    : undefined;
-  const translations = translationRequired
-    ? await I18NConfig.getCachedTranslations(locale)
-    : undefined;
-
   const renderSettings = I18NConfig.getRenderSettings();
+
+  // ----- FETCH TRANSLATIONS ----- //
+
+  // Get cached translations
+  const cachedTranslationsPromise: Promise<TranslationsObject> =
+    translationRequired
+      ? I18NConfig.getCachedTranslations(locale)
+      : ({} as any);
+
+  // Get default dictionary
+  const dictionariesPromise: Promise<FlattenedDictionary> =
+    I18NConfig.getDictionary(locale, id);
+
+  // Get translation dictionary
+  const translationDictionaryPromise: Promise<FlattenedDictionary> =
+    I18NConfig.getDictionary(locale, id);
+
+  // Block until cache check resolves and dictionaries resolve
+  const [translations, defaultDictionary, translationsDictionary] =
+    await Promise.all([
+      cachedTranslationsPromise,
+      dictionariesPromise,
+      translationDictionaryPromise,
+    ]);
 
   // ---------- THE d() METHOD ---------- //
 
@@ -86,7 +102,7 @@ export default async function getDict(
   ): string => {
     // Get entry
     id = getId(id);
-    const value = getDictionaryEntry(dictionary, id);
+    const value = getDictionaryEntry(defaultDictionary, id);
 
     // Check: no entry found
     if (!value) {
@@ -110,7 +126,7 @@ export default async function getDict(
     const source = splitStringToContent(entry);
 
     // Render Method
-    const renderContent = (content: any, locales: string[]) => {
+    const renderContent = (content: Content, locales: string[]) => {
       return renderContentToString(
         content,
         locales,
@@ -122,43 +138,47 @@ export default async function getDict(
     // Check: translation required
     if (!translationRequired) return renderContent(source, [defaultLocale]);
 
-    // ---------- DICTIONARY TRANSLATIONS ---------- //
+    // ----- CHECK DICTIONARY ----- //
 
     // Get dictionaryTranslation
-    const dictionaryTranslation = dictionaryTranslations?.[id];
+    const dictionaryTranslation = translationsDictionary?.[id];
 
-    // Render dictionaryTranslation
-    if (dictionaryTranslation) {
-      return renderContentToString(
-        splitStringToContent(dictionaryTranslation),
-        [locale, defaultLocale],
-        options.variables,
-        options.variablesOptions
-      );
+    // Check: valid entry
+    if (isValidDictionaryEntry(dictionaryTranslation)) {
+      // Get entry and metadata
+      const { entry } = getEntryAndMetadata(dictionaryTranslation);
+
+      // Render translation
+      return renderContent(entry, [locale, defaultLocale]);
     }
 
-    // ---------- TRANSLATION ---------- //
+    // ----- CHECK TRANSLATIONS ----- //
 
+    // Get hash
     const hash = hashJsxChildren({
       source,
       ...(metadata?.context && { context: metadata?.context }),
       id,
       dataFormat: 'JSX',
     });
+
+    // Check id first
     const translationEntry = translations?.[hash];
 
-    // ----- RENDER TRANSLATION ----- //
-
-    // If a translation already exists
+    // Check translation successful
     if (translationEntry?.state === 'success')
-      return renderContent(translationEntry.target, [locale, defaultLocale]);
+      return renderContent(translationEntry.target as Content, [
+        locale,
+        defaultLocale,
+      ]);
 
-    // If a translation errored
-    if (translationEntry?.state === 'error')
+    // Check translation errored
+    if (translationEntry?.state === 'error') {
       return renderContent(source, [defaultLocale]);
+    }
 
-    // ----- CREATE TRANSLATION ----- //
-    // Since this is buildtime string translation, it's dev only
+    // ----- TRANSLATE ON DEMAND ----- //
+    // develoment only
 
     if (!I18NConfig.isDevelopmentApiEnabled()) {
       console.warn(createDictionaryTranslationError(id));

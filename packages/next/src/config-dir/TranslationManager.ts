@@ -1,4 +1,3 @@
-import { standardizeLocale } from 'generaltranslation';
 import defaultWithGTConfigProps from './props/defaultWithGTConfigProps';
 import { defaultCacheUrl } from 'generaltranslation/internal';
 import {
@@ -55,15 +54,6 @@ export class TranslationManager {
   }
 
   /**
-   * Standardizes a locale if GT services are enabled.
-   * @param {string} locale - The locale to standardize.
-   * @returns {string} The standardized locale.
-   */
-  _standardizeLocale(locale: string): string {
-    return this.gtServicesEnabled ? standardizeLocale(locale) : locale;
-  }
-
-  /**
    * Sets the configuration for the TranslationManager.
    * @param {Partial<TranslationManagerConfig>} newConfig - The new configuration to apply.
    */
@@ -97,34 +87,34 @@ export class TranslationManager {
   async getCachedTranslations(
     locale: string
   ): Promise<TranslationsObject | undefined> {
-    const reference = this._standardizeLocale(locale);
-
     // Check if translations have expired
     // Translations can only expire if they are loaded remotely
     const hasExpired =
       this.config.loadTranslationsType === 'remote' &&
-      this.translationsMap.has(reference) &&
-      Date.now() - (this.translationTimestamps.get(reference) ?? 0) >
+      this.translationsMap.has(locale) &&
+      Date.now() - (this.translationTimestamps.get(locale) ?? 0) >
         this.config.cacheExpiryTime;
 
     // Return cached translations if available
-    if (this.translationsMap.has(reference) && !hasExpired) {
-      return this.translationsMap.get(reference);
+    if (this.translationsMap.has(locale) && !hasExpired) {
+      return this.translationsMap.get(locale);
     }
+
     // Await any in-progress fetch
-    if (this.fetchPromises.has(reference)) {
-      return await this.fetchPromises.get(reference);
+    if (this.fetchPromises.has(locale)) {
+      return await this.fetchPromises.get(locale);
     }
-    // Fetch translations remotely
-    const fetchPromise = this._fetchTranslations(reference);
-    this.fetchPromises.set(reference, fetchPromise);
+
+    // Fetch translations
+    const fetchPromise = this._fetchTranslations(locale);
+    this.fetchPromises.set(locale, fetchPromise);
     const retrievedTranslations = await fetchPromise;
-    this.fetchPromises.delete(reference);
+    this.fetchPromises.delete(locale);
 
     // Cache the retrieved translations
     if (retrievedTranslations) {
-      this.translationsMap.set(reference, retrievedTranslations);
-      this.translationTimestamps.set(reference, Date.now());
+      this.translationsMap.set(locale, retrievedTranslations);
+      this.translationTimestamps.set(locale, Date.now());
     }
     return retrievedTranslations;
   }
@@ -135,8 +125,7 @@ export class TranslationManager {
    * @returns {TranslationsObject | undefined} The translations data or undefined if not found.
    */
   getRecentTranslations(locale: string): TranslationsObject | undefined {
-    const reference = this._standardizeLocale(locale);
-    return this.translationsMap.get(reference);
+    return this.translationsMap.get(locale);
   }
 
   /**
@@ -152,9 +141,8 @@ export class TranslationManager {
     translation: TranslationSuccess | TranslationLoading | TranslationError
   ): boolean {
     if (!(locale && hash && translation)) return false;
-    const reference = this._standardizeLocale(locale);
-    const currentTranslations = this.translationsMap.get(reference) || {};
-    this.translationsMap.set(reference, {
+    const currentTranslations = this.translationsMap.get(locale) || {};
+    this.translationsMap.set(locale, {
       ...currentTranslations,
       [hash]: translation,
     });
@@ -166,8 +154,7 @@ export class TranslationManager {
    * @param {string} locale - The locale code.
    */
   setTranslationRequested(locale: string): void {
-    const reference = this._standardizeLocale(locale);
-    this.requestedTranslations.set(reference, true);
+    this.requestedTranslations.set(locale, true);
   }
 
   /**
@@ -176,8 +163,7 @@ export class TranslationManager {
    * @returns {boolean} True if requested, false otherwise.
    */
   getTranslationRequested(locale: string): boolean {
-    const reference = standardizeLocale(locale);
-    return this.requestedTranslations.get(reference) ? true : false;
+    return this.requestedTranslations.get(locale) ? true : false;
   }
 }
 

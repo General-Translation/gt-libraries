@@ -10,39 +10,6 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -85,13 +52,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GTProvider;
 var jsx_runtime_1 = require("react/jsx-runtime");
-var internal_1 = require("gt-react/internal");
-var react_1 = require("react");
 var getI18NConfig_1 = __importDefault(require("../config-dir/getI18NConfig"));
 var getLocale_1 = __importDefault(require("../request/getLocale"));
-var getDictionary_1 = __importStar(require("../dictionary/getDictionary"));
-var createErrors_1 = require("../errors/createErrors");
 var ClientProviderWrapper_1 = __importDefault(require("./ClientProviderWrapper"));
+var generaltranslation_1 = require("generaltranslation");
 /**
  * Provides General Translation context to its children, which can then access `useGT`, `useLocale`, and `useDefaultLocale`.
  *
@@ -103,58 +67,42 @@ var ClientProviderWrapper_1 = __importDefault(require("./ClientProviderWrapper")
  */
 function GTProvider(_a) {
     return __awaiter(this, arguments, void 0, function (_b) {
-        var I18NConfig, locale, _c, defaultLocale, _d, translationRequired, dialectTranslationRequired, dictionaryTranslations, cachedTranslationsPromise, dictionary, _e, prefixPath, translations;
+        var I18NConfig, locale, _c, defaultLocale, _d, translationRequired, dialectTranslationRequired, cachedTranslationsPromise, dictionariesPromise, translationDictionaryPromise, _e, translations, defaultDictionary, translationsDictionary, dictionaries;
+        var _f;
         var children = _b.children, prefixId = _b.id, _locale = _b.locale;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     I18NConfig = (0, getI18NConfig_1.default)();
-                    _c = _locale;
+                    _c = (_locale && process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true'
+                        ? (0, generaltranslation_1.standardizeLocale)(_locale)
+                        : _locale);
                     if (_c) return [3 /*break*/, 2];
                     return [4 /*yield*/, (0, getLocale_1.default)()];
                 case 1:
-                    _c = (_f.sent());
-                    _f.label = 2;
+                    _c = (_g.sent());
+                    _g.label = 2;
                 case 2:
                     locale = _c;
                     defaultLocale = I18NConfig.getDefaultLocale();
                     _d = I18NConfig.requiresTranslation(locale), translationRequired = _d[0], dialectTranslationRequired = _d[1];
-                    return [4 /*yield*/, I18NConfig.getDictionaryTranslations(locale)];
-                case 3:
-                    dictionaryTranslations = (_f.sent()) || {};
                     cachedTranslationsPromise = translationRequired
                         ? I18NConfig.getCachedTranslations(locale)
                         : {};
-                    if (!prefixId) return [3 /*break*/, 4];
-                    _e = (0, getDictionary_1.getDictionaryEntry)(prefixId);
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, (0, getDictionary_1.default)()];
-                case 5:
-                    _e = _f.sent();
-                    _f.label = 6;
-                case 6:
-                    dictionary = (_e) || {};
-                    // Check provisional dictionary
-                    if ((0, react_1.isValidElement)(dictionary) ||
-                        Array.isArray(dictionary) ||
-                        typeof dictionary !== 'object') {
-                        // cannot be a DictionaryEntry, must be a Dictionary
-                        throw new Error((0, createErrors_1.createDictionarySubsetError)(prefixId !== null && prefixId !== void 0 ? prefixId : '', '<GTProvider>'));
-                    }
-                    // Insert prefix into dictionary
-                    if (prefixId) {
-                        prefixPath = prefixId.split('.').reverse();
-                        dictionary = prefixPath.reduce(function (acc, prefix) {
-                            var _a;
-                            return _a = {}, _a[prefix] = acc, _a;
-                        }, dictionary);
-                    }
-                    // Merge dictionary with dictionary translations
-                    dictionary = (0, internal_1.mergeDictionaries)(dictionary, dictionaryTranslations);
-                    return [4 /*yield*/, cachedTranslationsPromise];
-                case 7:
-                    translations = _f.sent();
-                    return [2 /*return*/, ((0, jsx_runtime_1.jsx)(ClientProviderWrapper_1.default, __assign({ dictionary: dictionary, initialTranslations: translations, locale: locale, locales: I18NConfig.getLocales(), defaultLocale: defaultLocale, translationRequired: translationRequired, dialectTranslationRequired: dialectTranslationRequired, gtServicesEnabled: process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true' }, I18NConfig.getClientSideConfig(), { children: children })))];
+                    dictionariesPromise = I18NConfig.getDictionary(locale, prefixId);
+                    translationDictionaryPromise = I18NConfig.getDictionary(locale, prefixId);
+                    return [4 /*yield*/, Promise.all([
+                            cachedTranslationsPromise,
+                            dictionariesPromise,
+                            translationDictionaryPromise,
+                        ])];
+                case 3:
+                    _e = _g.sent(), translations = _e[0], defaultDictionary = _e[1], translationsDictionary = _e[2];
+                    dictionaries = (_f = {},
+                        _f[locale] = translationsDictionary,
+                        _f[defaultLocale] = defaultDictionary,
+                        _f);
+                    return [2 /*return*/, ((0, jsx_runtime_1.jsx)(ClientProviderWrapper_1.default, __assign({ dictionaries: dictionaries, initialTranslations: translations, locale: locale, locales: I18NConfig.getLocales(), defaultLocale: defaultLocale, translationRequired: translationRequired, dialectTranslationRequired: dialectTranslationRequired, gtServicesEnabled: process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true' }, I18NConfig.getClientSideConfig(), { children: children })))];
             }
         });
     });
