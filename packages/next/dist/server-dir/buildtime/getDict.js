@@ -89,7 +89,7 @@ function getDict(id) {
                     cachedTranslationsPromise = translationRequired
                         ? I18NConfig.getCachedTranslations(locale)
                         : {};
-                    dictionariesPromise = I18NConfig.getDictionary(locale, id);
+                    dictionariesPromise = I18NConfig.getDictionary(defaultLocale, id);
                     translationDictionaryPromise = I18NConfig.getDictionary(locale, id);
                     return [4 /*yield*/, Promise.all([
                             cachedTranslationsPromise,
@@ -102,8 +102,7 @@ function getDict(id) {
                         if (options === void 0) { options = {}; }
                         // Get entry
                         id = getId(id);
-                        var value = (0, internal_1.getDictionaryEntry)(defaultDictionary, id);
-                        console.log('[getDict] defaultDictionary', defaultDictionary);
+                        var value = defaultDictionary === null || defaultDictionary === void 0 ? void 0 : defaultDictionary[id];
                         // Check: no entry found
                         if (!value) {
                             console.warn((0, createErrors_1.createNoEntryFoundWarning)(id));
@@ -138,7 +137,6 @@ function getDict(id) {
                             // Render translation
                             return renderContent(entry_1, [locale, defaultLocale]);
                         }
-                        console.log('[getDict] dictionaryTranslation not found', translationsDictionary);
                         // ----- CHECK TRANSLATIONS ----- //
                         // Get hash
                         var hash = (0, id_1.hashJsxChildren)(__assign(__assign({ source: source }, ((metadata === null || metadata === void 0 ? void 0 : metadata.context) && { context: metadata === null || metadata === void 0 ? void 0 : metadata.context })), { id: id, dataFormat: 'JSX' }));
@@ -154,7 +152,6 @@ function getDict(id) {
                         if ((translationEntry === null || translationEntry === void 0 ? void 0 : translationEntry.state) === 'error') {
                             return renderContent(source, [defaultLocale]);
                         }
-                        console.log('[getDict] translationEntry not found', translations);
                         // ----- TRANSLATE ON DEMAND ----- //
                         // develoment only
                         if (!I18NConfig.isDevelopmentApiEnabled()) {
@@ -169,7 +166,6 @@ function getDict(id) {
                         }).catch(function () { }); // Error logged in I18NConfig
                         // Loading translation warning
                         console.warn(createErrors_1.translationLoadingWarning);
-                        console.log('[getDict] loading');
                         // Loading behavior
                         if (renderSettings.method === 'replace') {
                             return renderContent(source, [defaultLocale]);

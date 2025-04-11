@@ -45,11 +45,13 @@ export default async function GTProvider({
 
   // Get default dictionary
   const dictionariesPromise: Promise<FlattenedDictionary> =
-    I18NConfig.getDictionary(locale, prefixId);
+    I18NConfig.getDictionary(defaultLocale, prefixId);
 
   // Get translation dictionary
   const translationDictionaryPromise: Promise<FlattenedDictionary> =
-    I18NConfig.getDictionary(locale, prefixId);
+    translationRequired
+      ? I18NConfig.getDictionary(locale, prefixId)
+      : Promise.resolve({} as any);
 
   // Block until cache check resolves and dictionaries resolve
   const [translations, defaultDictionary, translationsDictionary] =
@@ -61,7 +63,7 @@ export default async function GTProvider({
 
   // Merge dictionaries
   const dictionaries = {
-    [locale]: translationsDictionary,
+    ...(translationRequired && { [locale]: translationsDictionary }),
     [defaultLocale]: defaultDictionary,
   };
 

@@ -89,7 +89,7 @@ function GTProvider(_a) {
                     cachedTranslationsPromise = translationRequired
                         ? I18NConfig.getCachedTranslations(locale)
                         : {};
-                    dictionariesPromise = I18NConfig.getDictionary(locale, prefixId);
+                    dictionariesPromise = I18NConfig.getDictionary(defaultLocale, prefixId);
                     translationDictionaryPromise = I18NConfig.getDictionary(locale, prefixId);
                     return [4 /*yield*/, Promise.all([
                             cachedTranslationsPromise,

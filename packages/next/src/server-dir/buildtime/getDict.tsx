@@ -1,7 +1,6 @@
 import {
   DictionaryTranslationOptions,
   FlattenedDictionary,
-  getDictionaryEntry,
   getEntryAndMetadata,
   isValidDictionaryEntry,
   TranslationsObject,
@@ -60,11 +59,13 @@ export default async function getDict(
 
   // Get default dictionary
   const dictionariesPromise: Promise<FlattenedDictionary> =
-    I18NConfig.getDictionary(locale, id);
+    I18NConfig.getDictionary(defaultLocale, id);
 
   // Get translation dictionary
   const translationDictionaryPromise: Promise<FlattenedDictionary> =
-    I18NConfig.getDictionary(locale, id);
+    translationRequired
+      ? I18NConfig.getDictionary(locale, id)
+      : Promise.resolve({} as any);
 
   // Block until cache check resolves and dictionaries resolve
   const [translations, defaultDictionary, translationsDictionary] =
@@ -102,7 +103,7 @@ export default async function getDict(
   ): string => {
     // Get entry
     id = getId(id);
-    const value = getDictionaryEntry(defaultDictionary, id);
+    const value = defaultDictionary?.[id];
 
     // Check: no entry found
     if (!value) {
