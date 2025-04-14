@@ -68,7 +68,6 @@ function getDictionary() {
                         }
                         else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
                             dictionary = require('gt-next/_dictionary').default;
-                            console.log('dictionary', require('gt-next/_dictionary').default);
                         }
                     }
                     catch (_d) { }
