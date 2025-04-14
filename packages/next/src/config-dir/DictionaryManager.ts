@@ -12,7 +12,8 @@ import {
   dictionaryUnavailableWarning,
 } from '../errors/createErrors';
 import { libraryDefaultLocale } from 'generaltranslation/internal';
-
+import getDictionary from '../dictionary/getDictionary';
+// TODO: importing dictionary.js does not do live updates like hot reload
 /**
  * Manages Dictionary
  */
@@ -50,10 +51,23 @@ export class DictionaryManager {
     locale: string = this.defaultLocale,
     prefixId?: string
   ): Promise<FlattenedDictionary> {
+    if (locale === this.defaultLocale) {
+      const defaultDictionary = await this._loadDefaultDictionary();
+      if (!defaultDictionary) {
+        console.warn(defaultDictionaryUnavailableWarning);
+        return {};
+      }
+      return flattenDictionary(defaultDictionary);
+    }
+
     // Check internal cache TODO: hot reload for dictionaries dev
     let flattenedDictionary: FlattenedDictionary | undefined =
       this.dictionaries?.[locale];
-    if (flattenedDictionary) return flattenedDictionary;
+    if (flattenedDictionary && process.env.NODE_ENV !== 'development') {
+      return flattenedDictionary;
+    }
+
+    console.log('[getDictionary] loading', locale);
 
     // Load raw dictionary
     let rawDictionary: Dictionary | undefined;
@@ -67,6 +81,10 @@ export class DictionaryManager {
       if (!rawDictionary) {
         console.warn(dictionaryUnavailableWarning(locale));
       }
+    }
+
+    if (locale === 'en') {
+      console.log(rawDictionary?.key1);
     }
 
     // No result found
@@ -112,27 +130,28 @@ export class DictionaryManager {
    * @returns {Promise<Dictionary | undefined>} The default dictionary data.
    */
   private async _loadDefaultDictionary(): Promise<Dictionary | undefined> {
-    // Get dictionary file type
-    // TODO: move this into I18NConfigurations
-    const dictionaryFileType =
-      process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
+    // // Get dictionary file type
+    // // TODO: move this into I18NConfigurations
+    // const dictionaryFileType =
+    //   process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
 
-    // First, check for a dictionary file (takes precedence)
-    let dictionary: Dictionary | undefined;
-    try {
-      if (dictionaryFileType === '.json') {
-        dictionary = require('gt-next/_dictionary');
-      } else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
-        dictionary = require('gt-next/_dictionary').default;
-      }
-    } catch {}
+    // // First, check for a dictionary file (takes precedence)
+    // let dictionary: Dictionary | undefined;
+    // try {
+    //   if (dictionaryFileType === '.json') {
+    //     dictionary = require('gt-next/_dictionary');
+    //   } else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
+    //     dictionary = require('gt-next/_dictionary').default;
+    //   }
+    // } catch {}
 
-    // Second, try using a custom dictionary loader
-    if (!dictionary && this.defaultLocale) {
-      dictionary = await this._loadDictionary(this.defaultLocale);
-    }
+    // // Second, try using a custom dictionary loader
+    // if (!dictionary && this.defaultLocale) {
+    //   dictionary = await this._loadDictionary(this.defaultLocale);
+    // }
 
-    return dictionary;
+    // return dictionary;
+    return getDictionary();
   }
 
   /**

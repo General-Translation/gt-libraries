@@ -72,7 +72,7 @@ var id_1 = require("generaltranslation/id");
  */
 function getDict(id) {
     return __awaiter(this, void 0, void 0, function () {
-        var getId, locale, I18NConfig, defaultLocale, translationRequired, renderSettings, cachedTranslationsPromise, dictionariesPromise, translationDictionaryPromise, _a, translations, defaultDictionary, translationsDictionary, d;
+        var getId, locale, I18NConfig, defaultLocale, translationRequired, renderSettings, cachedTranslationsPromise, defaultDictionaryPromise, translationDictionaryPromise, _a, translations, defaultDictionary, translationsDictionary, d;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -89,11 +89,13 @@ function getDict(id) {
                     cachedTranslationsPromise = translationRequired
                         ? I18NConfig.getCachedTranslations(locale)
                         : {};
-                    dictionariesPromise = I18NConfig.getDictionary(defaultLocale, id);
-                    translationDictionaryPromise = I18NConfig.getDictionary(locale, id);
+                    defaultDictionaryPromise = I18NConfig.getDictionary(defaultLocale, id);
+                    translationDictionaryPromise = translationRequired
+                        ? I18NConfig.getDictionary(locale, id)
+                        : Promise.resolve({});
                     return [4 /*yield*/, Promise.all([
                             cachedTranslationsPromise,
-                            dictionariesPromise,
+                            defaultDictionaryPromise,
                             translationDictionaryPromise,
                         ])];
                 case 2:

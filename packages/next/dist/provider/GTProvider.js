@@ -67,11 +67,11 @@ var generaltranslation_1 = require("generaltranslation");
  */
 function GTProvider(_a) {
     return __awaiter(this, arguments, void 0, function (_b) {
-        var I18NConfig, locale, _c, defaultLocale, _d, translationRequired, dialectTranslationRequired, cachedTranslationsPromise, dictionariesPromise, translationDictionaryPromise, _e, translations, defaultDictionary, translationsDictionary, dictionaries;
-        var _f;
+        var I18NConfig, locale, _c, defaultLocale, _d, translationRequired, dialectTranslationRequired, cachedTranslationsPromise, defaultDictionaryPromise, translationDictionaryPromise, _e, translations, defaultDictionary, translationsDictionary, dictionaries;
+        var _f, _g;
         var children = _b.children, prefixId = _b.id, _locale = _b.locale;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
+        return __generator(this, function (_h) {
+            switch (_h.label) {
                 case 0:
                     I18NConfig = (0, getI18NConfig_1.default)();
                     _c = (_locale && process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true'
@@ -80,8 +80,8 @@ function GTProvider(_a) {
                     if (_c) return [3 /*break*/, 2];
                     return [4 /*yield*/, (0, getLocale_1.default)()];
                 case 1:
-                    _c = (_g.sent());
-                    _g.label = 2;
+                    _c = (_h.sent());
+                    _h.label = 2;
                 case 2:
                     locale = _c;
                     defaultLocale = I18NConfig.getDefaultLocale();
@@ -89,19 +89,18 @@ function GTProvider(_a) {
                     cachedTranslationsPromise = translationRequired
                         ? I18NConfig.getCachedTranslations(locale)
                         : {};
-                    dictionariesPromise = I18NConfig.getDictionary(defaultLocale, prefixId);
-                    translationDictionaryPromise = I18NConfig.getDictionary(locale, prefixId);
+                    defaultDictionaryPromise = I18NConfig.getDictionary(defaultLocale, prefixId);
+                    translationDictionaryPromise = translationRequired
+                        ? I18NConfig.getDictionary(locale, prefixId)
+                        : Promise.resolve({});
                     return [4 /*yield*/, Promise.all([
                             cachedTranslationsPromise,
-                            dictionariesPromise,
+                            defaultDictionaryPromise,
                             translationDictionaryPromise,
                         ])];
                 case 3:
-                    _e = _g.sent(), translations = _e[0], defaultDictionary = _e[1], translationsDictionary = _e[2];
-                    dictionaries = (_f = {},
-                        _f[locale] = translationsDictionary,
-                        _f[defaultLocale] = defaultDictionary,
-                        _f);
+                    _e = _h.sent(), translations = _e[0], defaultDictionary = _e[1], translationsDictionary = _e[2];
+                    dictionaries = __assign(__assign({}, (translationRequired && (_f = {}, _f[locale] = translationsDictionary, _f))), (_g = {}, _g[defaultLocale] = defaultDictionary, _g));
                     return [2 /*return*/, ((0, jsx_runtime_1.jsx)(ClientProviderWrapper_1.default, __assign({ dictionaries: dictionaries, initialTranslations: translations, locale: locale, locales: I18NConfig.getLocales(), defaultLocale: defaultLocale, translationRequired: translationRequired, dialectTranslationRequired: dialectTranslationRequired, gtServicesEnabled: process.env._GENERALTRANSLATION_GT_SERVICES_ENABLED === 'true' }, I18NConfig.getClientSideConfig(), { children: children })))];
             }
         });

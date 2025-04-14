@@ -44,7 +44,7 @@ export default async function GTProvider({
       : ({} as any);
 
   // Get default dictionary
-  const dictionariesPromise: Promise<FlattenedDictionary> =
+  const defaultDictionaryPromise: Promise<FlattenedDictionary> =
     I18NConfig.getDictionary(defaultLocale, prefixId);
 
   // Get translation dictionary
@@ -57,7 +57,7 @@ export default async function GTProvider({
   const [translations, defaultDictionary, translationsDictionary] =
     await Promise.all([
       cachedTranslationsPromise,
-      dictionariesPromise,
+      defaultDictionaryPromise,
       translationDictionaryPromise,
     ]);
 

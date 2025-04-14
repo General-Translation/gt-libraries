@@ -45,6 +45,8 @@ var internal_1 = require("gt-react/internal");
 var resolveDictionaryDictionary_1 = __importDefault(require("../loaders/resolveDictionaryDictionary"));
 var createErrors_1 = require("../errors/createErrors");
 var internal_2 = require("generaltranslation/internal");
+var getDictionary_1 = __importDefault(require("../dictionary/getDictionary"));
+// TODO: importing dictionary.js does not do live updates like hot reload
 /**
  * Manages Dictionary
  */
@@ -77,31 +79,46 @@ var DictionaryManager = /** @class */ (function () {
      */
     DictionaryManager.prototype.getDictionary = function () {
         return __awaiter(this, arguments, void 0, function (locale, prefixId) {
-            var flattenedDictionary, rawDictionary, subsetDictionary;
+            var defaultDictionary, flattenedDictionary, rawDictionary, subsetDictionary;
             var _a;
             if (locale === void 0) { locale = this.defaultLocale; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        flattenedDictionary = (_a = this.dictionaries) === null || _a === void 0 ? void 0 : _a[locale];
-                        if (flattenedDictionary)
-                            return [2 /*return*/, flattenedDictionary];
                         if (!(locale === this.defaultLocale)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this._loadDefaultDictionary()];
                     case 1:
+                        defaultDictionary = _b.sent();
+                        if (!defaultDictionary) {
+                            console.warn(createErrors_1.defaultDictionaryUnavailableWarning);
+                            return [2 /*return*/, {}];
+                        }
+                        return [2 /*return*/, (0, internal_1.flattenDictionary)(defaultDictionary)];
+                    case 2:
+                        flattenedDictionary = (_a = this.dictionaries) === null || _a === void 0 ? void 0 : _a[locale];
+                        if (flattenedDictionary && process.env.NODE_ENV !== 'development') {
+                            return [2 /*return*/, flattenedDictionary];
+                        }
+                        console.log('[getDictionary] loading', locale);
+                        if (!(locale === this.defaultLocale)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this._loadDefaultDictionary()];
+                    case 3:
                         rawDictionary = _b.sent();
                         if (!rawDictionary) {
                             console.warn(createErrors_1.defaultDictionaryUnavailableWarning);
                         }
-                        return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, this._loadDictionary(locale)];
-                    case 3:
+                        return [3 /*break*/, 6];
+                    case 4: return [4 /*yield*/, this._loadDictionary(locale)];
+                    case 5:
                         rawDictionary = _b.sent();
                         if (!rawDictionary) {
                             console.warn((0, createErrors_1.dictionaryUnavailableWarning)(locale));
                         }
-                        _b.label = 4;
-                    case 4:
+                        _b.label = 6;
+                    case 6:
+                        if (locale === 'en') {
+                            console.log(rawDictionary === null || rawDictionary === void 0 ? void 0 : rawDictionary.key1);
+                        }
                         // No result found
                         if (!rawDictionary) {
                             this.dictionaries[locale] = {};
@@ -140,27 +157,26 @@ var DictionaryManager = /** @class */ (function () {
      */
     DictionaryManager.prototype._loadDefaultDictionary = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var dictionaryFileType, dictionary;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        dictionaryFileType = process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
-                        try {
-                            if (dictionaryFileType === '.json') {
-                                dictionary = require('gt-next/_dictionary');
-                            }
-                            else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
-                                dictionary = require('gt-next/_dictionary').default;
-                            }
-                        }
-                        catch (_b) { }
-                        if (!(!dictionary && this.defaultLocale)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._loadDictionary(this.defaultLocale)];
-                    case 1:
-                        dictionary = _a.sent();
-                        _a.label = 2;
-                    case 2: return [2 /*return*/, dictionary];
-                }
+                // // Get dictionary file type
+                // // TODO: move this into I18NConfigurations
+                // const dictionaryFileType =
+                //   process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
+                // // First, check for a dictionary file (takes precedence)
+                // let dictionary: Dictionary | undefined;
+                // try {
+                //   if (dictionaryFileType === '.json') {
+                //     dictionary = require('gt-next/_dictionary');
+                //   } else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
+                //     dictionary = require('gt-next/_dictionary').default;
+                //   }
+                // } catch {}
+                // // Second, try using a custom dictionary loader
+                // if (!dictionary && this.defaultLocale) {
+                //   dictionary = await this._loadDictionary(this.defaultLocale);
+                // }
+                // return dictionary;
+                return [2 /*return*/, (0, getDictionary_1.default)()];
             });
         });
     };

@@ -58,7 +58,7 @@ export default async function getDict(
       : ({} as any);
 
   // Get default dictionary
-  const dictionariesPromise: Promise<FlattenedDictionary> =
+  const defaultDictionaryPromise: Promise<FlattenedDictionary> =
     I18NConfig.getDictionary(defaultLocale, id);
 
   // Get translation dictionary
@@ -71,7 +71,7 @@ export default async function getDict(
   const [translations, defaultDictionary, translationsDictionary] =
     await Promise.all([
       cachedTranslationsPromise,
-      dictionariesPromise,
+      defaultDictionaryPromise,
       translationDictionaryPromise,
     ]);
 
