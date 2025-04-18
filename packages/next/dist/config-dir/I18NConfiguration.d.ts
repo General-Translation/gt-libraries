@@ -132,6 +132,7 @@ export default class I18NConfiguration {
      * @returns A promise that resolves to the default dictionary.
      */
     getDefaultDictionary(): Promise<FlattenedDictionary>;
+    static getDefaultDictionaryTest(): import("gt-react/internal").Dictionary | undefined;
     /**
      * Get the translation dictionaries for this user's locale, if they exist
      * Globally shared cache or saved locally

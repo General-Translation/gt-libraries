@@ -60,6 +60,9 @@ function getDictionary() {
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
+                    // Singleton pattern
+                    if (dictionary !== undefined)
+                        return [2 /*return*/, dictionary];
                     dictionaryFileType = process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
                     // First, check for a dictionary file (takes precedence)
                     try {

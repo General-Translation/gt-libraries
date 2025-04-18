@@ -1,4 +1,4 @@
-import { FlattenedDictionary } from 'gt-react/internal';
+import { FlattenedDictionary, Dictionary } from 'gt-react/internal';
 /**
  * Manages Dictionary
  */
@@ -23,14 +23,18 @@ export declare class DictionaryManager {
      *
      * Will also cache the dictionary in the internal cache.
      * @param {string} locale - The locale code.
+     * @param {string} prefixId - The prefix id of a parent dictionary entry.
      * @returns {Promise<FlattenedDictionary>} The dictionary data or empty object if not found.
      */
     getDictionary(locale?: string, prefixId?: string): Promise<FlattenedDictionary>;
+    static getDevelopmentDictionary(locale: string, prefixId?: string): Dictionary | undefined;
+    refresh(): void;
     /**
      * Retrieves default dictionary
      * @returns {Promise<Dictionary | undefined>} The default dictionary data.
      */
     private _loadDefaultDictionary;
+    private static _loadDefaultDictionaryHelper;
     /**
      * Load dictionary for a given locale
      * @param {string} locale - The locale code.
@@ -45,7 +49,8 @@ export declare class DictionaryManager {
      * @returns {FlattenedDictionary} The subset of the original dictionary.
      */
     private _getDictionarySubset;
+    static getDefaultDictionaryTest(): Promise<Dictionary | undefined>;
 }
-export declare const dictionaryManager: DictionaryManager;
+declare const dictionaryManager: DictionaryManager;
 export default dictionaryManager;
 //# sourceMappingURL=DictionaryManager.d.ts.map

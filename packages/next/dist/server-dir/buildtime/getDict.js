@@ -57,6 +57,7 @@ var getI18NConfig_1 = __importDefault(require("../../config-dir/getI18NConfig"))
 var getLocale_1 = __importDefault(require("../../request/getLocale"));
 var generaltranslation_1 = require("generaltranslation");
 var id_1 = require("generaltranslation/id");
+var I18NConfiguration_1 = __importDefault(require("../../config-dir/I18NConfiguration"));
 /**
  * Returns the dictionary access function `d()`, which is used to translate an item from the dictionary.
  *
@@ -72,7 +73,7 @@ var id_1 = require("generaltranslation/id");
  */
 function getDict(id) {
     return __awaiter(this, void 0, void 0, function () {
-        var getId, locale, I18NConfig, defaultLocale, translationRequired, renderSettings, cachedTranslationsPromise, defaultDictionaryPromise, translationDictionaryPromise, _a, translations, defaultDictionary, translationsDictionary, d;
+        var getId, locale, I18NConfig, defaultLocale, translationRequired, renderSettings, cachedTranslationsPromise, defaultDictionary, translationDictionaryPromise, _a, translations, translationsDictionary, d;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -89,22 +90,22 @@ function getDict(id) {
                     cachedTranslationsPromise = translationRequired
                         ? I18NConfig.getCachedTranslations(locale)
                         : {};
-                    defaultDictionaryPromise = I18NConfig.getDictionary(defaultLocale, id);
+                    defaultDictionary = (0, internal_1.flattenDictionary)(I18NConfiguration_1.default.getDefaultDictionaryTest() || {});
                     translationDictionaryPromise = translationRequired
                         ? I18NConfig.getDictionary(locale, id)
                         : Promise.resolve({});
                     return [4 /*yield*/, Promise.all([
                             cachedTranslationsPromise,
-                            defaultDictionaryPromise,
                             translationDictionaryPromise,
                         ])];
                 case 2:
-                    _a = _b.sent(), translations = _a[0], defaultDictionary = _a[1], translationsDictionary = _a[2];
+                    _a = _b.sent(), translations = _a[0], translationsDictionary = _a[1];
                     d = function (id, options) {
                         if (options === void 0) { options = {}; }
                         // Get entry
                         id = getId(id);
                         var value = defaultDictionary === null || defaultDictionary === void 0 ? void 0 : defaultDictionary[id];
+                        // const value = getDictionaryEntry(defaultDictionary, id);
                         // Check: no entry found
                         if (!value) {
                             console.warn((0, createErrors_1.createNoEntryFoundWarning)(id));

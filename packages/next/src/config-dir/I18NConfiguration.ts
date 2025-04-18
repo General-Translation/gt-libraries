@@ -385,6 +385,15 @@ export default class I18NConfiguration {
     );
   }
 
+  public static async getDevelopmentDictionary(): Promise<FlattenedDictionary> {
+    return DictionaryManager.getDevelopmentDictionary('en', 'test-prefix');
+  }
+
+  public static getDefaultDictionaryTest(): FlattenedDictionary {
+    // return DictionaryManager.getDefaultDictionaryTest();
+    return DictionaryManager.getDevelopmentDictionary('en', 'test-prefix');
+  }
+
   // ----- CACHED TRANSLATIONS ----- //
 
   /**

@@ -1,6 +1,8 @@
 import {
   DictionaryTranslationOptions,
+  flattenDictionary,
   FlattenedDictionary,
+  getDictionaryEntry,
   getEntryAndMetadata,
   isValidDictionaryEntry,
   TranslationsObject,
@@ -20,6 +22,8 @@ import {
 } from 'generaltranslation';
 import { hashJsxChildren } from 'generaltranslation/id';
 import { Content } from 'generaltranslation/internal';
+import getDictionary from '../../dictionary/getDictionary';
+import I18NConfiguration from '../../config-dir/I18NConfiguration';
 
 /**
  * Returns the dictionary access function `d()`, which is used to translate an item from the dictionary.
@@ -58,22 +62,39 @@ export default async function getDict(
       : ({} as any);
 
   // Get default dictionary
-  const defaultDictionaryPromise: Promise<FlattenedDictionary> =
-    I18NConfig.getDictionary(defaultLocale, id);
-
+  // const defaultDictionaryPromise: Promise<FlattenedDictionary> =
+  //   I18NConfig.getDictionary(defaultLocale, id);
+  // const defaultDictionaryPromise: Promise<FlattenedDictionary> = (() => {
+  //   return getDictionary().then((dictionary) => {
+  //     if (!dictionary) return {};
+  //     return flattenDictionary(dictionary);
+  //   });
+  // })();
+  // const defaultDictionary = await defaultDictionaryPromise;
+  // const defaultDictionary = (await getDictionary()) || {};
+  // const defaultDictionary =
+  //   (await I18NConfiguration.getDefaultDictionaryTest()) || {};
+  const defaultDictionary = flattenDictionary(
+    I18NConfiguration.getDefaultDictionaryTest() || {}
+  );
   // Get translation dictionary
   const translationDictionaryPromise: Promise<FlattenedDictionary> =
     translationRequired
       ? I18NConfig.getDictionary(locale, id)
       : Promise.resolve({} as any);
 
-  // Block until cache check resolves and dictionaries resolve
-  const [translations, defaultDictionary, translationsDictionary] =
-    await Promise.all([
-      cachedTranslationsPromise,
-      defaultDictionaryPromise,
-      translationDictionaryPromise,
-    ]);
+  // // Block until cache check resolves and dictionaries resolve
+  // const [translations, defaultDictionary, translationsDictionary] =
+  //   await Promise.all([
+  //     cachedTranslationsPromise,
+  //     defaultDictionaryPromise,
+  //     translationDictionaryPromise,
+  //   ]);
+
+  const [translations, translationsDictionary] = await Promise.all([
+    cachedTranslationsPromise,
+    translationDictionaryPromise,
+  ]);
 
   // ---------- THE d() METHOD ---------- //
 
@@ -104,6 +125,7 @@ export default async function getDict(
     // Get entry
     id = getId(id);
     const value = defaultDictionary?.[id];
+    // const value = getDictionaryEntry(defaultDictionary, id);
 
     // Check: no entry found
     if (!value) {

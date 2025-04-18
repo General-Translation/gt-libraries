@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dictionaryManager = exports.DictionaryManager = void 0;
+exports.DictionaryManager = void 0;
 var generaltranslation_1 = require("generaltranslation");
 var internal_1 = require("gt-react/internal");
 var resolveDictionaryDictionary_1 = __importDefault(require("../loaders/resolveDictionaryDictionary"));
@@ -75,6 +75,7 @@ var DictionaryManager = /** @class */ (function () {
      *
      * Will also cache the dictionary in the internal cache.
      * @param {string} locale - The locale code.
+     * @param {string} prefixId - The prefix id of a parent dictionary entry.
      * @returns {Promise<FlattenedDictionary>} The dictionary data or empty object if not found.
      */
     DictionaryManager.prototype.getDictionary = function () {
@@ -85,7 +86,12 @@ var DictionaryManager = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        // Hotreload for development
+                        if (process.env.NODE_ENV === 'development') {
+                            delete this.dictionaries[locale];
+                        }
                         if (!(locale === this.defaultLocale)) return [3 /*break*/, 2];
+                        console.log('[getDictionary] loading default dictionary');
                         return [4 /*yield*/, this._loadDefaultDictionary()];
                     case 1:
                         defaultDictionary = _b.sent();
@@ -150,6 +156,14 @@ var DictionaryManager = /** @class */ (function () {
             });
         });
     };
+    DictionaryManager.getDevelopmentDictionary = function (locale, prefixId) {
+        return DictionaryManager._loadDefaultDictionaryHelper();
+    };
+    DictionaryManager.prototype.refresh = function () {
+        console.log('[DictionaryManager] Refreshing dictionary');
+        delete this.dictionaries[this.defaultLocale];
+        delete require.cache[require.resolve('gt-next/_dictionary')];
+    };
     // ---------- DICTIONARY LOADING HELPERS ---------- //
     /**
      * Retrieves default dictionary
@@ -157,28 +171,50 @@ var DictionaryManager = /** @class */ (function () {
      */
     DictionaryManager.prototype._loadDefaultDictionary = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var dictionary;
             return __generator(this, function (_a) {
-                // // Get dictionary file type
-                // // TODO: move this into I18NConfigurations
-                // const dictionaryFileType =
-                //   process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
-                // // First, check for a dictionary file (takes precedence)
-                // let dictionary: Dictionary | undefined;
-                // try {
-                //   if (dictionaryFileType === '.json') {
-                //     dictionary = require('gt-next/_dictionary');
-                //   } else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
-                //     dictionary = require('gt-next/_dictionary').default;
-                //   }
-                // } catch {}
-                // // Second, try using a custom dictionary loader
-                // if (!dictionary && this.defaultLocale) {
-                //   dictionary = await this._loadDictionary(this.defaultLocale);
-                // }
-                // return dictionary;
-                return [2 /*return*/, (0, getDictionary_1.default)()];
+                switch (_a.label) {
+                    case 0:
+                        dictionary = DictionaryManager._loadDefaultDictionaryHelper();
+                        if (!(!dictionary && this.defaultLocale)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._loadDictionary(this.defaultLocale)];
+                    case 1:
+                        dictionary = _a.sent();
+                        _a.label = 2;
+                    case 2: return [2 /*return*/, dictionary];
+                }
             });
         });
+    };
+    DictionaryManager._loadDefaultDictionaryHelper = function () {
+        // Hot reload for development
+        if (process.env.NODE_ENV === 'development') {
+            try {
+                delete require.cache[require.resolve('gt-next/_dictionary')];
+                console.log('[DictionaryManager] Deleted dictionary from cache');
+            }
+            catch (err) {
+                console.warn('[DictionaryManager] Could not resolve gt-next/_dictionary:', err);
+            }
+        }
+        // Get dictionary file type
+        // TODO: move this into I18NConfigurations
+        var dictionaryFileType = process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
+        // First, check for a dictionary file (takes precedence)
+        var dictionary;
+        try {
+            if (dictionaryFileType === '.json') {
+                delete require.cache[require.resolve('gt-next/_dictionary')];
+                dictionary = require('gt-next/_dictionary');
+            }
+            else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
+                delete require.cache[require.resolve('gt-next/_dictionary')];
+                dictionary = require('gt-next/_dictionary').default;
+            }
+            console.log('[DictionaryManager] Loaded dictionary:', dictionary);
+        }
+        catch (_a) { }
+        return dictionary;
     };
     /**
      * Load dictionary for a given locale
@@ -246,9 +282,26 @@ var DictionaryManager = /** @class */ (function () {
         }));
         return subset;
     };
+    // ---------- EXPERIMENTAL ---------- //
+    DictionaryManager.getDefaultDictionaryTest = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var defaultDictionary;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, (0, getDictionary_1.default)()];
+                    case 1:
+                        defaultDictionary = _a.sent();
+                        if (!defaultDictionary) {
+                            console.warn(createErrors_1.defaultDictionaryUnavailableWarning);
+                        }
+                        return [2 /*return*/, defaultDictionary];
+                }
+            });
+        });
+    };
     return DictionaryManager;
 }());
 exports.DictionaryManager = DictionaryManager;
-exports.dictionaryManager = new DictionaryManager();
-exports.default = exports.dictionaryManager;
+var dictionaryManager = new DictionaryManager();
+exports.default = dictionaryManager;
 //# sourceMappingURL=DictionaryManager.js.map

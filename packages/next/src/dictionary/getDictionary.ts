@@ -17,9 +17,8 @@ let dictionary: Dictionary | undefined = undefined;
  * NOTE: This is different from DictionaryManager.getDictionary() because it checks require('gt-next/_dictionary')
  */
 export default async function getDictionary(): Promise<Dictionary | undefined> {
-  // TODO: move this to DictionaryManager
   // Singleton pattern
-  // if (dictionary !== undefined) return dictionary;
+  if (dictionary !== undefined) return dictionary;
 
   // Get dictionary file type
   const dictionaryFileType =

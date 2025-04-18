@@ -45,13 +45,20 @@ export class DictionaryManager {
    *
    * Will also cache the dictionary in the internal cache.
    * @param {string} locale - The locale code.
+   * @param {string} prefixId - The prefix id of a parent dictionary entry.
    * @returns {Promise<FlattenedDictionary>} The dictionary data or empty object if not found.
    */
   public async getDictionary(
     locale: string = this.defaultLocale,
     prefixId?: string
   ): Promise<FlattenedDictionary> {
+    // Hotreload for development
+    if (process.env.NODE_ENV === 'development') {
+      delete this.dictionaries[locale];
+    }
+
     if (locale === this.defaultLocale) {
+      console.log('[getDictionary] loading default dictionary');
       const defaultDictionary = await this._loadDefaultDictionary();
       if (!defaultDictionary) {
         console.warn(defaultDictionaryUnavailableWarning);
@@ -123,6 +130,14 @@ export class DictionaryManager {
     return subsetDictionary;
   }
 
+  public static getDevelopmentDictionary(locale: string, prefixId?: string) {}
+
+  public refresh() {
+    console.log('[DictionaryManager] Refreshing dictionary');
+    delete this.dictionaries[this.defaultLocale];
+    delete require.cache[require.resolve('gt-next/_dictionary')];
+  }
+
   // ---------- DICTIONARY LOADING HELPERS ---------- //
 
   /**
@@ -130,28 +145,45 @@ export class DictionaryManager {
    * @returns {Promise<Dictionary | undefined>} The default dictionary data.
    */
   private async _loadDefaultDictionary(): Promise<Dictionary | undefined> {
-    // // Get dictionary file type
-    // // TODO: move this into I18NConfigurations
-    // const dictionaryFileType =
-    //   process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
+    let dictionary = DictionaryManager._loadDefaultDictionaryHelper();
 
-    // // First, check for a dictionary file (takes precedence)
-    // let dictionary: Dictionary | undefined;
-    // try {
-    //   if (dictionaryFileType === '.json') {
-    //     dictionary = require('gt-next/_dictionary');
-    //   } else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
-    //     dictionary = require('gt-next/_dictionary').default;
-    //   }
-    // } catch {}
+    // Second, try using a custom dictionary loader
+    if (!dictionary && this.defaultLocale) {
+      dictionary = await this._loadDictionary(this.defaultLocale);
+    }
+    return dictionary;
+  }
 
-    // // Second, try using a custom dictionary loader
-    // if (!dictionary && this.defaultLocale) {
-    //   dictionary = await this._loadDictionary(this.defaultLocale);
-    // }
-
-    // return dictionary;
-    return getDictionary();
+  private static _loadDefaultDictionaryHelper(): Dictionary | undefined {
+    // Hot reload for development
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        delete require.cache[require.resolve('gt-next/_dictionary')];
+        console.log('[DictionaryManager] Deleted dictionary from cache');
+      } catch (err) {
+        console.warn(
+          '[DictionaryManager] Could not resolve gt-next/_dictionary:',
+          err
+        );
+      }
+    }
+    // Get dictionary file type
+    // TODO: move this into I18NConfigurations
+    const dictionaryFileType =
+      process.env._GENERALTRANSLATION_DICTIONARY_FILE_TYPE;
+    // First, check for a dictionary file (takes precedence)
+    let dictionary: Dictionary | undefined;
+    try {
+      if (dictionaryFileType === '.json') {
+        delete require.cache[require.resolve('gt-next/_dictionary')];
+        dictionary = require('gt-next/_dictionary');
+      } else if (dictionaryFileType === '.ts' || dictionaryFileType === '.js') {
+        delete require.cache[require.resolve('gt-next/_dictionary')];
+        dictionary = require('gt-next/_dictionary').default;
+      }
+      console.log('[DictionaryManager] Loaded dictionary:', dictionary);
+    } catch {}
+    return dictionary;
   }
 
   /**
@@ -209,7 +241,17 @@ export class DictionaryManager {
 
     return subset;
   }
+
+  // ---------- EXPERIMENTAL ---------- //
+
+  static async getDefaultDictionaryTest() {
+    const defaultDictionary = await getDictionary();
+    if (!defaultDictionary) {
+      console.warn(defaultDictionaryUnavailableWarning);
+    }
+    return defaultDictionary;
+  }
 }
 
-export const dictionaryManager = new DictionaryManager();
+const dictionaryManager = new DictionaryManager();
 export default dictionaryManager;
