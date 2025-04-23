@@ -10,3 +10,5 @@ _test_cli
 .env.local
 _testing
 dist/
+.pnpm-store/
+pnpm-lock.yaml

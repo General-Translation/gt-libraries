@@ -1,15 +1,12 @@
 {
   "name": "gt-libraries",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "transpile": "npm run transpile --workspaces --if-present",
-    "release": "npm run release --workspaces --if-present",
-    "build:clean": "npm run build:clean --workspaces --if-present",
+    "build": "pnpm run -r build",
+    "test": "pnpm run -r test",
+    "transpile": "pnpm run -r transpile",
+    "release": "pnpm run -r release",
+    "build:clean": "pnpm run -r build:clean",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,yml,yaml}\""
   },
   "repository": {
@@ -34,5 +31,5 @@
     "prettier": "^3.4.2",
     "typescript": "^5.7.3"
   },
-  "packageManager": "npm@11.3.0"
+  "packageManager": "pnpm@10.9.0"
 }
